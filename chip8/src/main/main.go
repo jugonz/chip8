@@ -6,7 +6,7 @@ var chip8 arch.Arch
 
 func main() {
 
-	chip8 = arch.Chip8{}
+	chip8 = arch.MakeChip8()
 	// init()
 	for {
 		chip8.EmulateCycle()
