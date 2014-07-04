@@ -1,7 +1,9 @@
 package arch
 
-import "math/rand"
-import "time"
+import (
+	"math/rand"
+	"time"
+)
 
 /**
  * Datatype to describe the architecture of a Chip8 system.

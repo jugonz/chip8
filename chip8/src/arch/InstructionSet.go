@@ -20,9 +20,8 @@ type InstructionSet interface {
 	SkipInstrEqualReg()
 	SkipInstrNotEqualReg()
 	SkipInstrKey()
-	UnknownInstruction()
 
-	// Manipulate data registers
+	// Manipulating data registers
 	SetRegToLiteral()
 	SetRegToReg()
 	Add()
@@ -35,17 +34,20 @@ type InstructionSet interface {
 	ShiftRight()
 	ShiftLeft()
 	SetRegisterRandomMask()
+	SaveBinaryCodedDecimal()
 	GetKeyPress()
 	GetDelayTimer()
 
-	// Manipulate special registers
+	// Manipulating special registers
 	AddRegisterToIndex()
 	SetIndexLiteral()
 	SetDelayTimer()
 	SetSoundTimer()
-	BinaryMagic()
 
 	// Context switching
 	SaveRegisters()
 	RestoreRegisters()
+
+	// Special
+	UnknownInstruction()
 }
