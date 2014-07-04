@@ -45,13 +45,13 @@ func (c8 *Chip8) EmulateCycle() {
 		case 0xEE:
 			c8.Return()
 		default:
-			c8.UnknownInstruction()
+			c8.CallRCA1802()
 		}
 	case 0x1:
 		c8.Jump()
 	case 0x2:
 		c8.Call()
-	case 0x3:
+	case 0x3 & 0x4:
 		c8.SkipInstrEqualLiteral()
 	case 0x4:
 		c8.SkipInstrNotEqualLiteral()
@@ -99,9 +99,9 @@ func (c8 *Chip8) EmulateCycle() {
 	case 0xF:
 		switch c8.Opcode & 0xFF {
 		case 0x07:
-			c8.SetRegisterDelayTimer()
+			c8.GetDelayTimer()
 		case 0x0A:
-			c8.SetRegisterKeyPress()
+			c8.GetKeyPress()
 		case 0x15:
 			c8.SetDelayTimer()
 		case 0x18:
@@ -128,8 +128,7 @@ func (c8 *Chip8) EmulateCycle() {
 }
 
 func (c8 *Chip8) FetchOpcode() uint16 {
-	newOp := c8.Memory[c8.PC]
-	newOp << 8
+	newOp := c8.Memory[c8.PC] << 8
 	newOp |= c8.Memory[c8.PC+1]
 	return newOp
 }
@@ -140,57 +139,4 @@ func (c8 *Chip8) DrawScreen() {
 
 func (c8 *Chip8) SetKeys() {
 
-}
-
-// INSTRUCTION SET FUNCTIONS //
-
-func (c8 *Chip8) UnknownInstruction() {
-	panic(fmt.Sprintf("Unknown instruction: + ", c8.Opcode))
-}
-
-func (c8 *Chip8) SetIndexLiteral() {
-	c8.IndexReg = c8.Opcode & 0x0FFF
-
-	c8.PC += 2
-}
-
-func (c8 *Chip8) JumpIndexLiterallOffset() {
-	// Store the PC in the stack pointer
-	c8.Stack[c8.SP] = c8.PC
-	c8.SP++ // Overflow?
-
-	newAddr := (c8.Opcode & 0x0FFF) + c8.Reigsters[0]
-	c8.PC = newAddr
-}
-
-func (c8 *Chip8) SetRegisterRandomMask() {
-	targetReg := (c8.Opcode >> 8) & 0xF
-	mask := c8.Opcode & 0x00FF
-	randNum := c8.Rando.Uint32() % 256 // needs to fit in a uint8
-	c8.Reigsters[targetReg] = mask & randNum
-
-	c8.PC += 2
-}
-
-func (c8 *Chip8) DrawSprite() {}
-
-func (c8 *Chip8) SkipInstrKey() {
-	key := (c8.Opcode >> 8) & 0xF
-
-	switch c8.Opcode & 0xFF {
-	case 0x9E: // Skip instr if key pressed
-		if c8.Keyboard[key] {
-			c8.PC += 4
-			return
-		}
-	case 0xA1: // Skip instr if key not pressed
-		if !c8.Keyboard[key] {
-			c8.PC += 4
-			return
-		}
-	default:
-		c8.UnknownInstruction()
-	}
-
-	c8.PC += 2 // If we didn't match above, just move to next instr
 }

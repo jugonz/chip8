@@ -35,8 +35,8 @@ type InstructionSet interface {
 	ShiftRight()
 	ShiftLeft()
 	SetRegisterRandomMask()
-	SetRegisterDelayTimer()
-	SetRegisterKeyPress()
+	GetKeyPress()
+	GetDelayTimer()
 
 	// Manipulate special registers
 	AddRegisterToIndex()
