@@ -19,8 +19,8 @@ type InstructionSet interface {
 	SkipInstrNotEqualLiteral()
 	SkipInstrEqualReg()
 	SkipInstrNotEqualReg()
-	SkipInstrKeyPressed()
-	SkipInstrKeyNotPressed()
+	SkipInstrKey()
+	UnknownInstruction()
 
 	// Manipulate data registers
 	SetRegToLiteral()
@@ -39,7 +39,7 @@ type InstructionSet interface {
 	SetRegisterKeyPress()
 
 	// Manipulate special registers
-	AddToIndex()
+	AddRegisterToIndex()
 	SetIndexLiteral()
 	SetDelayTimer()
 	SetSoundTimer()
