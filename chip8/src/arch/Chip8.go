@@ -11,7 +11,7 @@ import (
 type Chip8 struct {
 	Opcode     uint16
 	Memory     [4096]uint8
-	Reigsters  [16]uint8
+	Registers  [16]uint8
 	IndexReg   uint16
 	PC         uint16
 	GFX        [64 * 32]bool // true if on
@@ -20,15 +20,15 @@ type Chip8 struct {
 	SoundTimer uint8
 	Stack      [16]uint16
 	SP         uint16
-	Keyboard   [16]bool  // true if pressed
-	Rando      math.Rand // PRNG
+	Keyboard   [16]bool   // true if pressed
+	Rando      *rand.Rand // PRNG
 	Fontset    [80]uint8
 }
 
 func MakeChip8() *Chip8 { // and initialize
-	c8 = Chip8{}
+	c8 := Chip8{}
 	c8.Opcode = 0x200
-	Rando = rand.New(time.Now().UnixNano())
+	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// Load fonset
 	c8.Fontset = [80]uint8{
@@ -74,7 +74,7 @@ func (c8 *Chip8) EmulateCycle() {
 		c8.Jump()
 	case 0x2:
 		c8.Call()
-	case 0x3 & 0x4:
+	case 0x3:
 		c8.SkipInstrEqualLiteral()
 	case 0x4:
 		c8.SkipInstrNotEqualLiteral()
@@ -112,7 +112,7 @@ func (c8 *Chip8) EmulateCycle() {
 	case 0xA: // 0xANNN: set index register to address NNN
 		c8.SetIndexLiteral()
 	case 0xB:
-		c8.JumpIndexLiterallOffset()
+		c8.JumpIndexLiteralOffset()
 	case 0xC:
 		c8.SetRegisterRandomMask()
 	case 0xD:
@@ -141,7 +141,7 @@ func (c8 *Chip8) EmulateCycle() {
 		case 0x29:
 			c8.SetIndexToSprite()
 		case 0x33:
-			c8.BinaryMagic()
+			c8.SaveBinaryCodedDecimal()
 		case 0x55:
 			c8.SaveRegisters()
 		case 0x65:
@@ -158,8 +158,8 @@ func (c8 *Chip8) EmulateCycle() {
 }
 
 func (c8 *Chip8) FetchOpcode() uint16 {
-	newOp := c8.Memory[c8.PC] << 8
-	newOp |= c8.Memory[c8.PC+1]
+	newOp := uint16(c8.Memory[c8.PC]) << 8
+	newOp |= uint16(c8.Memory[c8.PC+1])
 	return newOp
 }
 
