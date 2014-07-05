@@ -10,17 +10,71 @@ import (
 
 // Graphics controls
 
-func (c8 *Chip8) ClearScreen() {}
+func (c8 *Chip8) ClearScreen() {
+	c8.Reigsters[0xF] = 0 // Assume we don't unset any pixels.
 
-func (c8 *Chip8) DrawSprite() {}
+	for index := 0; index < len(c8.GFX); index++ {
+		if c8.GFX[index] {
+			c8.Reigsters[0xF] = 1 // Was previously drawn, note.
+		}
 
-func (c8 *Chip8) SetIndexToSprite() {}
+		c8.GFX[index] = false // Clear the pixel on the screen.
+	}
+
+	c8.DrawFlag = true
+	c8.PC += 2
+}
+
+func (c8 *Chip8) DrawSprite() {
+	xCoord := c8.Reigsters[(c8.Opcode>>8)&0xF]
+	yCoord := c8.Reigsters[(c8.Opcode>>4)&0xF]
+	height := c8.Opcode & 0xF
+	width := 8         // Width is hardcoded.
+	shiftConst := 0x80 // Shifting 128 right allows us to check indiv bits.
+	yScale := 64       // Don't quite understand this at the moment.
+
+	c8.Reigsters[0xF] = 0 // Assume we don't unset any pixels.
+
+	for yLine := 0; yLine < height; yLine++ {
+		pixel := c8.Memory[c8.IndexReg+yLine]
+
+		for xLine := 0; xLine < width; xLine++ {
+
+			// If we need to draw this pixel...
+			if pixel&(shiftConst>>xLine) != 0 {
+				index := xCoord + xLine + (yScale * (yCoord + yLine))
+
+				if c8.GFX[index] {
+					c8.Reigsters[0xF] = 1
+				}
+				c8.GFX[index] ^= 1
+			}
+		}
+	}
+
+	c8.DrawFlag = true
+	c8.PC += 2
+}
+
+func (c8 *Chip8) SetIndexToSprite() {
+	char := c8.Reigsters[(c8.Opcode>>8)&0xF]
+
+	// TODO: set index register to sprite of char
+
+	c8.PC += 2
+}
 
 // Control flow
 
 func (c8 *Chip8) CallRCA1802() {}
 
-func (c8 *Chip8) Return() {}
+func (c8 *Chip8) Return() {
+	// No return values, just stack movement.
+	c8.SP--
+	c8.PC = c8.Stack[c8.SP]
+
+	c8.PC += 2
+}
 
 func (c8 *Chip8) Jump() {
 	newAddr := c8.Opcode & 0xFFF
@@ -28,7 +82,7 @@ func (c8 *Chip8) Jump() {
 	c8.PC = newAddr
 }
 
-func (c8 *Chip8) JumpIndexLiterallOffset() {
+func (c8 *Chip8) JumpIndexLiteralOffset() {
 	newAddr := (c8.Opcode & 0xFFF) + c8.Reigsters[0]
 
 	c8.PC = newAddr
