@@ -11,13 +11,7 @@ import (
 // Graphics controls
 
 func (c8 *Chip8) ClearScreen() {
-	c8.Reigsters[0xF] = 0 // Assume we don't unset any pixels.
-
 	for index := 0; index < len(c8.GFX); index++ {
-		if c8.GFX[index] {
-			c8.Reigsters[0xF] = 1 // Was previously drawn, note.
-		}
-
 		c8.GFX[index] = false // Clear the pixel on the screen.
 	}
 
@@ -58,15 +52,20 @@ func (c8 *Chip8) DrawSprite() {
 
 func (c8 *Chip8) SetIndexToSprite() {
 	char := c8.Reigsters[(c8.Opcode>>8)&0xF]
+	offset := c8.Fontset / 16 // Number of sprites per character.
 
-	// TODO: set index register to sprite of char
+	// Set index register to location of the
+	// first fontset sprite of the matching character.
+	c8.IndexReg = 0x5 * char
 
 	c8.PC += 2
 }
 
 // Control flow
 
-func (c8 *Chip8) CallRCA1802() {}
+func (c8 *Chip8) CallRCA1802() {
+	panic("Unimplemented opcode")
+}
 
 func (c8 *Chip8) Return() {
 	// No return values, just stack movement.
@@ -146,25 +145,26 @@ func (c8 *Chip8) SkipInstrNotEqualReg() {
 	}
 }
 
-func (c8 *Chip8) SkipInstrKey() {
+func (c8 *Chip8) SkipInstrKeyPressed() {
 	key := (c8.Opcode >> 8) & 0xF
 
-	switch c8.Opcode & 0xFF {
-	case 0x9E: // Skip instr if key pressed.
-		if c8.Keyboard[key] {
-			c8.PC += 4
-			return
-		}
-	case 0xA1: // Skip instr if key not pressed.
-		if !c8.Keyboard[key] {
-			c8.PC += 4
-			return
-		}
-	default:
-		c8.UnknownInstruction()
+	if c8.Keyboard[key] {
+		c8.PC += 4
+		return
 	}
 
-	c8.PC += 2 // If we didn't match above, just move to next instr.
+	c8.PC += 2 // If we didn't match, just move to the next instr.
+}
+
+func (c8 *Chip8) SkipInstrKeyNotPressed() {
+	key := (c8.Opcode >> 8) & 0xF
+
+	if !c8.Keyboard[key] {
+		c8.PC += 4
+		return
+	}
+
+	c8.PC += 2
 }
 
 // Manipulating data registers

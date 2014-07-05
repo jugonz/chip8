@@ -19,7 +19,8 @@ type InstructionSet interface {
 	SkipInstrNotEqualLiteral()
 	SkipInstrEqualReg()
 	SkipInstrNotEqualReg()
-	SkipInstrKey()
+	SkipInstrKeyPressed()
+	SkipInstrKeyNotPressed()
 
 	// Manipulating data registers
 	SetRegToLiteral()

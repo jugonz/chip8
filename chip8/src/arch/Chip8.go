@@ -118,7 +118,14 @@ func (c8 *Chip8) EmulateCycle() {
 	case 0xD:
 		c8.DrawSprite()
 	case 0xE:
-		c8.SkipInstrKey()
+		switch c8.Opcode & 0xFF {
+		case 0x9E:
+			c8.SkipInstrKeyPressed()
+		case 0xA1:
+			c8.SkipInstrKeyNotPressed()
+		default:
+			c8.UnknownInstruction()
+		}
 	case 0xF:
 		switch c8.Opcode & 0xFF {
 		case 0x07:
