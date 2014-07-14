@@ -30,7 +30,7 @@ func MakeChip8() *Chip8 { // and initialize
 	c8.Opcode = 0x200
 	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	// Load fonset
+	// Define fonset
 	c8.Fontset = [80]uint8{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -48,6 +48,11 @@ func MakeChip8() *Chip8 { // and initialize
 		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
+	}
+
+	// Load fontset into memory.
+	for char := 0; char < len(c8.Fontset); char++ {
+		c8.Memory[char] = c8.Fontset[char]
 	}
 
 	return &c8
