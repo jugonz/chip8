@@ -27,7 +27,7 @@ type Chip8 struct {
 
 func MakeChip8() *Chip8 { // and initialize
 	c8 := Chip8{}
-	c8.Opcode = 0x200
+	c8.PC = 0x200
 	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// Define fonset
@@ -64,7 +64,10 @@ func (c8 *Chip8) LoadGame() {
 
 func (c8 *Chip8) EmulateCycle() {
 	c8.Opcode = c8.FetchOpcode() // Fetch instruction
+	c8.DecodeExecute()
+}
 
+func (c8 *Chip8) DecodeExecute() {
 	switch c8.Opcode >> 12 { // Decode (big-ass switch statement)
 	case 0x0:
 		switch c8.Opcode & 0xFF {
@@ -157,9 +160,6 @@ func (c8 *Chip8) EmulateCycle() {
 	default:
 		c8.UnknownInstruction()
 	}
-
-	// Execute
-
 }
 
 func (c8 *Chip8) FetchOpcode() uint16 {

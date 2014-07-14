@@ -7,12 +7,14 @@ var chip8 arch.Arch
 func main() {
 
 	chip8 = arch.MakeChip8()
-	// init()
+	// Load game
 	for {
+		chip8.FetchOpcode()
 		chip8.EmulateCycle()
 
-		// if drawFlag
-		chip8.DrawScreen()
+		if chip8.DrawFlag {
+			chip8.DrawScreen()
+		}
 
 		chip8.SetKeys()
 	}
