@@ -280,7 +280,7 @@ func (c8 *Chip8) SubYFromX() {
 }
 
 func (c8 *Chip8) ShiftRight() {
-	sourceReg := (c8.Opcode << 8) & 0xF
+	sourceReg := (c8.Opcode >> 8) & 0xF
 
 	// Set VF to least significant bit of sourceReg before shifting.
 	c8.Registers[0xF] = c8.Registers[sourceReg] & 0x1
@@ -291,7 +291,7 @@ func (c8 *Chip8) ShiftRight() {
 }
 
 func (c8 *Chip8) ShiftLeft() {
-	sourceReg := (c8.Opcode << 8) & 0xF
+	sourceReg := (c8.Opcode >> 8) & 0xF
 
 	// Set VF to most significant bit of sourceReg before shifting.
 	c8.Registers[0xF] = (c8.Registers[sourceReg] >> 15) & 0x1
