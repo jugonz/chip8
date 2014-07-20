@@ -1,7 +1,10 @@
 package arch
 
 import (
+	"fmt"
+	"io"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -31,7 +34,7 @@ func MakeChip8() *Chip8 { // and initialize
 	c8.PC = 0x200
 	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	// Define fonset
+	// Define fonset.
 	c8.Fontset = [80]uint8{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -59,8 +62,38 @@ func MakeChip8() *Chip8 { // and initialize
 	return &c8
 }
 
-func (c8 *Chip8) LoadGame() {
-	// open file and load into memory, else panic.
+func (c8 *Chip8) LoadGame(filePath string) {
+	// Open file and load into memory, else panic.
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Error: File at %v could not be loaded! Error was: %v\n",
+			filePath, err))
+	}
+	defer file.Close()
+
+	// Now, we've opened the file, and can load
+	// its contents into memory.
+	// We must first get the file size.
+	stat, err := file.Stat()
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Error: Info about file at %v could not be found! Error was: %v\n",
+			filePath, err))
+	}
+
+	buffer := make([]byte, stat.Size()) // Make new buffer to store game.
+	_, err = io.ReadFull(file, buffer)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Error: File at %v could not be read completely! Error was: %v\n",
+			filePath, err))
+	}
+
+	for index, value := range buffer {
+		c8.Memory[index+0x200] = value
+	}
+
 }
 
 func (c8 *Chip8) EmulateCycle() {
@@ -118,7 +151,7 @@ func (c8 *Chip8) DecodeExecute() {
 		}
 	case 0x9:
 		c8.SkipInstrNotEqualReg()
-	case 0xA: // 0xANNN: set index register to address NNN
+	case 0xA:
 		c8.SetIndexLiteral()
 	case 0xB:
 		c8.JumpIndexLiteralOffset()
