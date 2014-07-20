@@ -23,7 +23,7 @@ func TestSkipInstr(t *testing.T) {
 	c8 := MakeChip8()
 
 	// First, add the literal (A3) to a register.
-	c8.Opcode = 0x71A3
+	c8.Opcode = MakeOpcode(0x71A3)
 	c8.DecodeExecute()
 
 	// Now, check the PC.
@@ -33,7 +33,7 @@ func TestSkipInstr(t *testing.T) {
 
 	// Now, check that an instruction is skipped when
 	// comparing the literal.
-	c8.Opcode = 0x31A3
+	c8.Opcode = MakeOpcode(0x31A3)
 	c8.DecodeExecute()
 
 	if c8.PC != 0x206 {
@@ -42,7 +42,7 @@ func TestSkipInstr(t *testing.T) {
 
 	// Now, check that an instruction is NOT skipped
 	// when comparing the same literal.
-	c8.Opcode = 0x41A3
+	c8.Opcode = MakeOpcode(0x41A3)
 	c8.DecodeExecute()
 
 	if c8.PC != 0x208 {
@@ -51,10 +51,10 @@ func TestSkipInstr(t *testing.T) {
 
 	// Now, check that comparing two identical registers
 	// leads to an instruction skip.
-	c8.Opcode = 0x72A3 // Add literal to another register.
+	c8.Opcode = MakeOpcode(0x72A3) // Add literal to another register.
 	c8.DecodeExecute()
 
-	c8.Opcode = 0x5120
+	c8.Opcode = MakeOpcode(0x5120)
 	c8.DecodeExecute()
 
 	if c8.PC != 0x20E {
@@ -66,7 +66,7 @@ func TestClearScreen(t *testing.T) {
 	c8 := MakeChip8()
 
 	// Draw something to the screen, and see that it is not empty.
-	c8.Opcode = 0xD324
+	c8.Opcode = MakeOpcode(0xD324)
 	c8.DecodeExecute()
 
 	clear := true
@@ -81,7 +81,7 @@ func TestClearScreen(t *testing.T) {
 	}
 
 	// Now, clear the screen, and check that it is empty.
-	c8.Opcode = 0x00E0
+	c8.Opcode = MakeOpcode(0x00E0)
 	c8.DecodeExecute()
 
 	clear = true
@@ -119,7 +119,7 @@ func TestCallReturn(t *testing.T) {
 	}
 
 	// Call a program at 789, and check stack.
-	c8.Opcode = 0x2789
+	c8.Opcode = MakeOpcode(0x2789)
 	c8.DecodeExecute()
 
 	if c8.SP != 1 {
@@ -135,7 +135,7 @@ func TestCallReturn(t *testing.T) {
 	}
 
 	// Return from that program, and see where we are.
-	c8.Opcode = 0x00EE
+	c8.Opcode = MakeOpcode(0x00EE)
 	c8.DecodeExecute()
 
 	if c8.SP != 0 {
@@ -158,7 +158,7 @@ func TestAdd(t *testing.T) {
 		t.Errorf("Register did not start at 0!\n")
 	}
 
-	c8.Opcode = 0x7212
+	c8.Opcode = MakeOpcode(0x7212)
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -168,7 +168,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	// Test the max value in a different register.
-	c8.Opcode = 0x73FF
+	c8.Opcode = MakeOpcode(0x73FF)
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -178,7 +178,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	// Now, add one, and test overflow.
-	c8.Opcode = 0x7301
+	c8.Opcode = MakeOpcode(0x7301)
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -192,9 +192,9 @@ func TestAddWithCarry(t *testing.T) {
 	c8 := MakeChip8()
 
 	// Test adding the max value without overflow.
-	c8.Opcode = 0x73FF // Add FF to reg 3 (0).
+	c8.Opcode = MakeOpcode(0x73FF) // Add FF to reg 3 (0).
 	c8.DecodeExecute()
-	c8.Opcode = 0x8374 // Add reg 7 (0) to reg 3.
+	c8.Opcode = MakeOpcode(0x8374) // Add reg 7 (0) to reg 3.
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -206,9 +206,9 @@ func TestAddWithCarry(t *testing.T) {
 	}
 
 	// Now, add one, and test overflow.
-	c8.Opcode = 0x7401 // Add 1 to reg 4 (0).
+	c8.Opcode = MakeOpcode(0x7401) // Add 1 to reg 4 (0).
 	c8.DecodeExecute()
-	c8.Opcode = 0x8344 // Add reg 4 (1) to reg 3 (FF).
+	c8.Opcode = MakeOpcode(0x8344) // Add reg 4 (1) to reg 3 (FF).
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -226,9 +226,9 @@ func TestSub(t *testing.T) {
 	c8 := MakeChip8()
 
 	// Set initial register values.
-	c8.Opcode = 0x71A2 // Add A2 to reg 1 (0).
+	c8.Opcode = MakeOpcode(0x71A2) // Add A2 to reg 1 (0).
 	c8.DecodeExecute()
-	c8.Opcode = 0x7203 // Add 03 to reg 2 (0).
+	c8.Opcode = MakeOpcode(0x7203) // Add 03 to reg 2 (0).
 	c8.DecodeExecute()
 
 	// Test that value is now correct.
@@ -241,7 +241,7 @@ func TestSub(t *testing.T) {
 	}
 
 	// Now, subtract nothing and check the value.
-	c8.Opcode = 0x8135
+	c8.Opcode = MakeOpcode(0x8135)
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0xA2 {
@@ -253,7 +253,7 @@ func TestSub(t *testing.T) {
 	}
 
 	// Subtract 2 (3) from 1 (A2).
-	c8.Opcode = 0x8125
+	c8.Opcode = MakeOpcode(0x8125)
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0x9F {
@@ -267,7 +267,7 @@ func TestSub(t *testing.T) {
 	}
 
 	// Subtract 1 (9F) from 2 (3), check for underflow.
-	c8.Opcode = 0x8215
+	c8.Opcode = MakeOpcode(0x8215)
 	c8.DecodeExecute()
 
 	if c8.Registers[2] != 0x64 {
@@ -285,7 +285,7 @@ func TestShift(t *testing.T) {
 	c8 := MakeChip8()
 
 	// Load register 1 with 1.
-	c8.Opcode = 0x7101 // Register 1 has 1.
+	c8.Opcode = MakeOpcode(0x7101) // Register 1 has 1.
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0x1 {
@@ -294,7 +294,7 @@ func TestShift(t *testing.T) {
 	}
 
 	// Now, shift it left.
-	c8.Opcode = 0x819E // 9 can be anything.
+	c8.Opcode = MakeOpcode(0x819E) // 9 can be anything.
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0x2 {
@@ -306,9 +306,9 @@ func TestShift(t *testing.T) {
 	}
 
 	// Now, shift the register right twice.
-	c8.Opcode = 0x8176
+	c8.Opcode = MakeOpcode(0x8176)
 	c8.DecodeExecute()
-	c8.Opcode = 0x8166
+	c8.Opcode = MakeOpcode(0x8166)
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0x0 {
@@ -324,11 +324,11 @@ func TestSaveRestoreRegs(t *testing.T) {
 	c8 := MakeChip8()
 
 	// First, load the reigsters with some data.
-	c8.Opcode = 0x71A1 // Reg 1 has A1.
+	c8.Opcode = MakeOpcode(0x71A1) // Reg 1 has A1.
 	c8.DecodeExecute()
-	c8.Opcode = 0x7206 // Reg 2 has 06.
+	c8.Opcode = MakeOpcode(0x7206) // Reg 2 has 06.
 	c8.DecodeExecute()
-	c8.Opcode = 0x76D4 // Reg 3 has D4.
+	c8.Opcode = MakeOpcode(0x76D4) // Reg 3 has D4.
 	c8.DecodeExecute()
 
 	// Check that the registers are correctly filled with data.
@@ -345,7 +345,7 @@ func TestSaveRestoreRegs(t *testing.T) {
 
 	// Now, set the index register to our memory save location
 	// (here, just arbitrarily pick 0x345).
-	c8.Opcode = 0xA345
+	c8.Opcode = MakeOpcode(0xA345)
 	c8.DecodeExecute()
 
 	if c8.IndexReg != 0x345 {
@@ -354,7 +354,7 @@ func TestSaveRestoreRegs(t *testing.T) {
 	}
 
 	// Now, load our registers (up to register 6) into memory.
-	c8.Opcode = 0xF655
+	c8.Opcode = MakeOpcode(0xF655)
 	c8.DecodeExecute()
 
 	// Check that the registers are correctly filled with data.
@@ -370,9 +370,9 @@ func TestSaveRestoreRegs(t *testing.T) {
 	}
 
 	// Now, change registers 1 and 5.
-	c8.Opcode = 0x7101
+	c8.Opcode = MakeOpcode(0x7101)
 	c8.DecodeExecute()
-	c8.Opcode = 0x75DD
+	c8.Opcode = MakeOpcode(0x75DD)
 	c8.DecodeExecute()
 
 	// Check that they've been updated.
@@ -388,7 +388,7 @@ func TestSaveRestoreRegs(t *testing.T) {
 	}
 
 	// Now, reload our registers with memory contents and check them.
-	c8.Opcode = 0xF665
+	c8.Opcode = MakeOpcode(0xF665)
 	c8.DecodeExecute()
 
 	if c8.Registers[1] != 0xA1 {

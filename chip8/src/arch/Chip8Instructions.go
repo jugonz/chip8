@@ -22,9 +22,9 @@ func (c8 *Chip8) ClearScreen() {
 
 func (c8 *Chip8) DrawSprite() {
 	// All variables are promoted to uint16 for easier manipulation.
-	xCoord := uint16(c8.Registers[(c8.Opcode>>8)&0xF])
-	yCoord := uint16(c8.Registers[(c8.Opcode>>4)&0xF])
-	height := c8.Opcode & 0xF
+	xCoord := uint16(c8.Registers[c8.Opcode.Xreg])
+	yCoord := uint16(c8.Registers[c8.Opcode.Yreg])
+	height := c8.Opcode.Value & 0xF
 	width := uint16(8)         // Width is hardcoded.
 	shiftConst := uint16(0x80) // Shifting 128 right allows us to check indiv bits.
 	yScale := uint16(64)       // Don't quite understand this at the moment.
@@ -58,7 +58,7 @@ func (c8 *Chip8) DrawSprite() {
 }
 
 func (c8 *Chip8) SetIndexToSprite() {
-	char := c8.Registers[(c8.Opcode>>8)&0xF]
+	char := c8.Registers[c8.Opcode.Xreg]
 	offset := uint8(len(c8.Fontset) / 16) // Number of sprites per character.
 
 	// Set index register to location of the
@@ -71,7 +71,7 @@ func (c8 *Chip8) SetIndexToSprite() {
 // Control flow
 
 func (c8 *Chip8) CallRCA1802() {
-	address := c8.Opcode & 0xFFF
+	address := c8.Opcode.Value & 0xFFF
 	panic(fmt.Sprintf("Unimplemented opcode CallRCA1802 called with address: %v\n",
 		address))
 }
@@ -85,33 +85,28 @@ func (c8 *Chip8) Return() {
 }
 
 func (c8 *Chip8) Jump() {
-	newAddr := c8.Opcode & 0xFFF
-
-	c8.PC = newAddr
+	c8.PC = c8.Opcode.Literal
 }
 
 func (c8 *Chip8) JumpIndexLiteralOffset() {
-	newAddr := (c8.Opcode & 0xFFF) + uint16(c8.Registers[0])
+	newAddr := c8.Opcode.Literal + uint16(c8.Registers[0])
 
 	c8.PC = newAddr
 }
 
 func (c8 *Chip8) Call() {
-	newAddr := c8.Opcode & 0xFFF
-
 	// Store the PC in the stack pointer.
 	c8.Stack[c8.SP] = c8.PC
 	c8.SP++ // TODO: Overflow?
 
-	c8.PC = newAddr
+	c8.PC = c8.Opcode.Literal
 }
 
 func (c8 *Chip8) SkipInstrEqualLiteral() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-	literal := c8.Opcode & 0xFF
+	literal := c8.Opcode.Value & 0xFF
 
 	// If the register contents equal the literal...
-	if uint16(c8.Registers[sourceReg]) == literal {
+	if uint16(c8.Registers[c8.Opcode.Xreg]) == literal {
 		c8.PC += 4 // skip an instructuion.
 	} else {
 		c8.PC += 2
@@ -119,11 +114,10 @@ func (c8 *Chip8) SkipInstrEqualLiteral() {
 }
 
 func (c8 *Chip8) SkipInstrNotEqualLiteral() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-	literal := c8.Opcode & 0xFF
+	literal := c8.Opcode.Value & 0xFF
 
 	// If the register contents don't equal the literal...
-	if uint16(c8.Registers[sourceReg]) != literal {
+	if uint16(c8.Registers[c8.Opcode.Xreg]) != literal {
 		c8.PC += 4 // skip an instructuion.
 	} else {
 		c8.PC += 2
@@ -131,11 +125,8 @@ func (c8 *Chip8) SkipInstrNotEqualLiteral() {
 }
 
 func (c8 *Chip8) SkipInstrEqualReg() {
-	source1 := (c8.Opcode >> 8) & 0xF
-	source2 := (c8.Opcode >> 4) & 0xF
-
 	// If the register contents are equal...
-	if c8.Registers[source1] == c8.Registers[source2] {
+	if c8.Registers[c8.Opcode.Xreg] == c8.Registers[c8.Opcode.Yreg] {
 		c8.PC += 4 // skip an instructuion.
 	} else {
 		c8.PC += 2
@@ -143,11 +134,8 @@ func (c8 *Chip8) SkipInstrEqualReg() {
 }
 
 func (c8 *Chip8) SkipInstrNotEqualReg() {
-	source1 := (c8.Opcode >> 8) & 0xF
-	source2 := (c8.Opcode >> 4) & 0xF
-
 	// If the register contents are not equal...
-	if c8.Registers[source1] != c8.Registers[source2] {
+	if c8.Registers[c8.Opcode.Xreg] != c8.Registers[c8.Opcode.Yreg] {
 		c8.PC += 4 // skip an instructuion.
 	} else {
 		c8.PC += 2
@@ -155,9 +143,7 @@ func (c8 *Chip8) SkipInstrNotEqualReg() {
 }
 
 func (c8 *Chip8) SkipInstrKeyPressed() {
-	key := (c8.Opcode >> 8) & 0xF
-
-	if c8.Keyboard[key] {
+	if c8.Keyboard[c8.Opcode.Xreg] {
 		c8.PC += 4
 		return
 	}
@@ -166,9 +152,7 @@ func (c8 *Chip8) SkipInstrKeyPressed() {
 }
 
 func (c8 *Chip8) SkipInstrKeyNotPressed() {
-	key := (c8.Opcode >> 8) & 0xF
-
-	if !c8.Keyboard[key] {
+	if !c8.Keyboard[c8.Opcode.Xreg] {
 		c8.PC += 4
 		return
 	}
@@ -179,40 +163,33 @@ func (c8 *Chip8) SkipInstrKeyNotPressed() {
 // Manipulating data registers
 
 func (c8 *Chip8) SetRegToLiteral() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-	literal := c8.Opcode & 0xFF
+	literal := c8.Opcode.Value & 0xFF
 
 	// WARNING, MAY NOT FIT!
-	c8.Registers[sourceReg] = uint8(literal)
+	c8.Registers[c8.Opcode.Xreg] = uint8(literal)
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SetRegToReg() {
-	sourceReg := (c8.Opcode >> 4) & 0xF
-	destReg := (c8.Opcode >> 8) & 0xF
-
-	c8.Registers[destReg] = c8.Registers[sourceReg]
+	c8.Registers[c8.Opcode.Xreg] = c8.Registers[c8.Opcode.Yreg]
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) Add() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-	literal := c8.Opcode & 0xFF
+	literal := c8.Opcode.Value & 0xFF
 
 	// WARNING, MIGHT NOT FIT
-	c8.Registers[sourceReg] += uint8(literal)
+	c8.Registers[c8.Opcode.Xreg] += uint8(literal)
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) AddWithCarry() {
-	regToAdd := (c8.Opcode >> 4) & 0xF
-	destReg := (c8.Opcode >> 8) & 0xF
-
-	sum := int(c8.Registers[destReg]) + int(c8.Registers[regToAdd])
-	c8.Registers[destReg] = uint8(sum)
+	sum := int(c8.Registers[c8.Opcode.Xreg]) +
+		int(c8.Registers[c8.Opcode.Yreg])
+	c8.Registers[c8.Opcode.Xreg] = uint8(sum)
 
 	if sum > math.MaxUint8 {
 		c8.Registers[0xF] = 1 // If overflow, save 1 into last reg.
@@ -224,35 +201,27 @@ func (c8 *Chip8) AddWithCarry() {
 }
 
 func (c8 *Chip8) Or() {
-	sourceReg := (c8.Opcode >> 4) & 0xF
-	destReg := (c8.Opcode >> 8) & 0xF
-
-	c8.Registers[destReg] = c8.Registers[destReg] | c8.Registers[sourceReg]
+	c8.Registers[c8.Opcode.Xreg] =
+		c8.Registers[c8.Opcode.Xreg] | c8.Registers[c8.Opcode.Yreg]
 	c8.PC += 2
 }
 
 func (c8 *Chip8) And() {
-	sourceReg := (c8.Opcode >> 4) & 0xF
-	destReg := (c8.Opcode >> 8) & 0xF
-
-	c8.Registers[destReg] = c8.Registers[destReg] & c8.Registers[sourceReg]
+	c8.Registers[c8.Opcode.Xreg] =
+		c8.Registers[c8.Opcode.Xreg] & c8.Registers[c8.Opcode.Yreg]
 	c8.PC += 2
 }
 
 func (c8 *Chip8) Xor() {
-	sourceReg := (c8.Opcode >> 4) & 0xF
-	destReg := (c8.Opcode >> 8) & 0xF
-
-	c8.Registers[destReg] = c8.Registers[destReg] ^ c8.Registers[sourceReg]
+	c8.Registers[c8.Opcode.Xreg] =
+		c8.Registers[c8.Opcode.Xreg] ^ c8.Registers[c8.Opcode.Yreg]
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SubXFromY() {
-	regY := (c8.Opcode >> 4) & 0xF
-	regX := (c8.Opcode >> 8) & 0xF
-
-	diff := int(c8.Registers[regY]) - int(c8.Registers[regX])
-	c8.Registers[regX] = uint8(diff)
+	diff := int(c8.Registers[c8.Opcode.Yreg]) -
+		int(c8.Registers[c8.Opcode.Xreg])
+	c8.Registers[c8.Opcode.Xreg] = uint8(diff)
 
 	if diff < 0 {
 		c8.Registers[0xF] = 0 // If underflow, save 0 into last reg.
@@ -264,11 +233,9 @@ func (c8 *Chip8) SubXFromY() {
 }
 
 func (c8 *Chip8) SubYFromX() {
-	regY := (c8.Opcode >> 4) & 0xF
-	regX := (c8.Opcode >> 8) & 0xF
-
-	diff := int(c8.Registers[regX]) - int(c8.Registers[regY])
-	c8.Registers[regX] = uint8(diff)
+	diff := int(c8.Registers[c8.Opcode.Xreg]) -
+		int(c8.Registers[c8.Opcode.Yreg])
+	c8.Registers[c8.Opcode.Xreg] = uint8(diff)
 
 	if diff < 0 {
 		c8.Registers[0xF] = 0 // If underflow, save 0 into last reg.
@@ -280,40 +247,34 @@ func (c8 *Chip8) SubYFromX() {
 }
 
 func (c8 *Chip8) ShiftRight() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
+	// Set VF to least significant bit of Xreg before shifting.
+	c8.Registers[0xF] = c8.Registers[c8.Opcode.Xreg] & 0x1
 
-	// Set VF to least significant bit of sourceReg before shifting.
-	c8.Registers[0xF] = c8.Registers[sourceReg] & 0x1
-
-	c8.Registers[sourceReg] = c8.Registers[sourceReg] >> 1
+	c8.Registers[c8.Opcode.Xreg] = c8.Registers[c8.Opcode.Xreg] >> 1
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) ShiftLeft() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
+	// Set VF to most significant bit of Xreg before shifting.
+	c8.Registers[0xF] = (c8.Registers[c8.Opcode.Xreg] >> 15) & 0x1
 
-	// Set VF to most significant bit of sourceReg before shifting.
-	c8.Registers[0xF] = (c8.Registers[sourceReg] >> 15) & 0x1
-
-	c8.Registers[sourceReg] = c8.Registers[sourceReg] << 1
+	c8.Registers[c8.Opcode.Xreg] = c8.Registers[c8.Opcode.Xreg] << 1
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SetRegisterRandomMask() {
-	targetReg := (c8.Opcode >> 8) & 0xF
-	mask := uint8(c8.Opcode & 0xFF)
+	mask := uint8(c8.Opcode.Value & 0xFF)
 	randNum := uint8(c8.Rando.Uint32() % 256) // Needs to fit in a uint8.
 
-	c8.Registers[targetReg] = mask & randNum
+	c8.Registers[c8.Opcode.Xreg] = mask & randNum
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SaveBinaryCodedDecimal() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-	valueToConvert := c8.Registers[sourceReg]
+	valueToConvert := c8.Registers[c8.Opcode.Xreg]
 
 	// Store the decimal representation of value in memory so that
 	// the hundreths digit of the value is in Mem[Index],
@@ -327,11 +288,9 @@ func (c8 *Chip8) SaveBinaryCodedDecimal() {
 }
 
 func (c8 *Chip8) GetKeyPress() {
-	targetReg := (c8.Opcode >> 8) & 0xF
-
 	for key := 0; key < len(c8.Keyboard); key++ {
-		if c8.Keyboard[targetReg] {
-			c8.Registers[targetReg] = uint8(key)
+		if c8.Keyboard[c8.Opcode.Xreg] {
+			c8.Registers[c8.Opcode.Xreg] = uint8(key)
 			c8.PC += 2
 			return
 		}
@@ -340,9 +299,7 @@ func (c8 *Chip8) GetKeyPress() {
 }
 
 func (c8 *Chip8) GetDelayTimer() {
-	targetReg := (c8.Opcode >> 8) & 0xF
-
-	c8.Registers[targetReg] = c8.DelayTimer // Save delay timer in reg.
+	c8.Registers[c8.Opcode.Xreg] = c8.DelayTimer // Save delay timer in reg.
 
 	c8.PC += 2
 }
@@ -350,31 +307,25 @@ func (c8 *Chip8) GetDelayTimer() {
 // Manipulating special registers
 
 func (c8 *Chip8) AddRegisterToIndex() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-
-	c8.IndexReg += uint16(c8.Registers[sourceReg])
+	c8.IndexReg += uint16(c8.Registers[c8.Opcode.Xreg])
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SetIndexLiteral() {
-	c8.IndexReg = c8.Opcode & 0xFFF
+	c8.IndexReg = c8.Opcode.Literal
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SetDelayTimer() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-
-	c8.DelayTimer = c8.Registers[sourceReg]
+	c8.DelayTimer = c8.Registers[c8.Opcode.Xreg]
 
 	c8.PC += 2
 }
 
 func (c8 *Chip8) SetSoundTimer() {
-	sourceReg := (c8.Opcode >> 8) & 0xF
-
-	c8.SoundTimer = c8.Registers[sourceReg]
+	c8.SoundTimer = c8.Registers[c8.Opcode.Xreg]
 
 	c8.PC += 2
 }
@@ -382,11 +333,9 @@ func (c8 *Chip8) SetSoundTimer() {
 // Context Switching
 
 func (c8 *Chip8) SaveRegisters() {
-	lastRegister := (c8.Opcode >> 8) & 0xF
-
 	// Store all registers up to last register in memory,
 	// starting in memory at the location in the index register.
-	for loc, reg := c8.IndexReg, uint16(0); reg <= lastRegister; loc, reg = loc+1, reg+1 {
+	for loc, reg := c8.IndexReg, uint16(0); reg <= uint16(c8.Opcode.Xreg); loc, reg = loc+1, reg+1 {
 		c8.Memory[loc] = c8.Registers[reg] // TODO: check overflow
 	}
 
@@ -394,11 +343,9 @@ func (c8 *Chip8) SaveRegisters() {
 }
 
 func (c8 *Chip8) RestoreRegisters() {
-	lastRegister := (c8.Opcode >> 8) & 0xF
-
 	// Load all registers up to last register from memory,
 	// starting in memory at the location in the index register.
-	for loc, reg := c8.IndexReg, uint16(0); reg <= lastRegister; loc, reg = loc+1, reg+1 {
+	for loc, reg := c8.IndexReg, uint16(0); reg <= uint16(c8.Opcode.Xreg); loc, reg = loc+1, reg+1 {
 		c8.Registers[reg] = c8.Memory[loc] // TODO: check overflow
 	}
 

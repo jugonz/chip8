@@ -9,7 +9,7 @@ import (
  * Datatype to describe the architecture of a Chip8 system.
  */
 type Chip8 struct {
-	Opcode     uint16
+	Opcode     Opcode
 	Memory     [4096]uint8
 	Registers  [16]uint8
 	IndexReg   uint16
@@ -27,6 +27,7 @@ type Chip8 struct {
 
 func MakeChip8() *Chip8 { // and initialize
 	c8 := Chip8{}
+	c8.Opcode = Opcode{}
 	c8.PC = 0x200
 	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -59,18 +60,18 @@ func MakeChip8() *Chip8 { // and initialize
 }
 
 func (c8 *Chip8) LoadGame() {
-	// open file and load into memory, else panic
+	// open file and load into memory, else panic.
 }
 
 func (c8 *Chip8) EmulateCycle() {
-	c8.Opcode = c8.FetchOpcode() // Fetch instruction
+	c8.FetchOpcode() // Fetch instruction.
 	c8.DecodeExecute()
 }
 
 func (c8 *Chip8) DecodeExecute() {
-	switch c8.Opcode >> 12 { // Decode (big-ass switch statement)
+	switch c8.Opcode.Value >> 12 { // Decode (big-ass switch statement)
 	case 0x0:
-		switch c8.Opcode & 0xFF {
+		switch c8.Opcode.Value & 0xFF {
 		case 0xE0:
 			c8.ClearScreen()
 		case 0xEE:
@@ -93,7 +94,7 @@ func (c8 *Chip8) DecodeExecute() {
 	case 0x7:
 		c8.Add()
 	case 0x8:
-		switch c8.Opcode & 0xF {
+		switch c8.Opcode.Value & 0xF {
 		case 0x0:
 			c8.SetRegToReg()
 		case 0x1:
@@ -126,7 +127,7 @@ func (c8 *Chip8) DecodeExecute() {
 	case 0xD:
 		c8.DrawSprite()
 	case 0xE:
-		switch c8.Opcode & 0xFF {
+		switch c8.Opcode.Value & 0xFF {
 		case 0x9E:
 			c8.SkipInstrKeyPressed()
 		case 0xA1:
@@ -135,7 +136,7 @@ func (c8 *Chip8) DecodeExecute() {
 			c8.UnknownInstruction()
 		}
 	case 0xF:
-		switch c8.Opcode & 0xFF {
+		switch c8.Opcode.Value & 0xFF {
 		case 0x07:
 			c8.GetDelayTimer()
 		case 0x0A:
@@ -162,10 +163,10 @@ func (c8 *Chip8) DecodeExecute() {
 	}
 }
 
-func (c8 *Chip8) FetchOpcode() uint16 {
+func (c8 *Chip8) FetchOpcode() {
 	newOp := uint16(c8.Memory[c8.PC]) << 8
 	newOp |= uint16(c8.Memory[c8.PC+1])
-	return newOp
+	c8.Opcode = MakeOpcode(newOp)
 }
 
 func (c8 *Chip8) DrawScreen() {
