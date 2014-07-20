@@ -16,7 +16,17 @@ func TestSetup(t *testing.T) {
 		}
 	}
 
-	// TODO: test loading game
+	c8.LoadGame("../../c8games/PONG2")
+	// Check that byte 1 is 22 and last byte is EE.
+	if c8.Memory[0x200] != 0x22 {
+		t.Errorf(
+			"c8 PONG2 was not properly loaded! Expected byte 1 to be 0x22, was: %v\n",
+			c8.Memory[0x200])
+	} else if c8.Memory[0x307] != 0xEE {
+		t.Errorf(
+			"c8 PONG2 was not properly loaded! Expected last byte to be 0xEE, was: %v\n",
+			c8.Memory[0x307])
+	}
 }
 
 func TestSkipInstr(t *testing.T) {
