@@ -3,7 +3,7 @@ package arch
 import "testing"
 
 func TestSetup(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 	if c8.PC != 0x200 {
 		t.Errorf("c8 Opcode was not initialized properly! Was: %v\n",
 			c8.Opcode)
@@ -30,7 +30,7 @@ func TestSetup(t *testing.T) {
 }
 
 func TestSkipInstr(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// First, add the literal (A3) to a register.
 	c8.Opcode = MakeOpcode(0x71A3)
@@ -73,17 +73,19 @@ func TestSkipInstr(t *testing.T) {
 }
 
 func TestClearScreen(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Draw something to the screen, and see that it is not empty.
 	c8.Opcode = MakeOpcode(0xD324)
 	c8.DecodeExecute()
 
 	clear := true
-	for _, value := range c8.GFX {
-		if value {
-			clear = false
-			break
+	for index, _ := range c8.GFX {
+		for _, value := range c8.GFX[index] {
+			if value {
+				clear = false
+				break
+			}
 		}
 	}
 	if clear {
@@ -95,10 +97,12 @@ func TestClearScreen(t *testing.T) {
 	c8.DecodeExecute()
 
 	clear = true
-	for _, value := range c8.GFX {
-		if value {
-			clear = false
-			break
+	for index, _ := range c8.GFX {
+		for _, value := range c8.GFX[index] {
+			if value {
+				clear = false
+				break
+			}
 		}
 	}
 	if !clear {
@@ -115,7 +119,7 @@ func TestSetIndexToSprite(t *testing.T) {
 }
 
 func TestCallReturn(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Check initial stack.
 	if c8.SP != 0 {
@@ -161,7 +165,7 @@ func TestCallReturn(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Test a simple add from 0 to register 2.
 	if c8.Registers[2] != 0 {
@@ -199,7 +203,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestAddWithCarry(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Test adding the max value without overflow.
 	c8.Opcode = MakeOpcode(0x73FF) // Add FF to reg 3 (0).
@@ -233,7 +237,7 @@ func TestAddWithCarry(t *testing.T) {
 }
 
 func TestSub(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Set initial register values.
 	c8.Opcode = MakeOpcode(0x71A2) // Add A2 to reg 1 (0).
@@ -292,7 +296,7 @@ func TestSub(t *testing.T) {
 }
 
 func TestShift(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// Load register 1 with 1.
 	c8.Opcode = MakeOpcode(0x7101) // Register 1 has 1.
@@ -331,7 +335,7 @@ func TestShift(t *testing.T) {
 }
 
 func TestSaveRestoreRegs(t *testing.T) {
-	c8 := MakeChip8()
+	c8 := MakeChip8(false)
 
 	// First, load the reigsters with some data.
 	c8.Opcode = MakeOpcode(0x71A1) // Reg 1 has A1.
