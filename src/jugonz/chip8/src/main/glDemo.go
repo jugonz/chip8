@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"fmt"
 	gl "github.com/go-gl/gl"
@@ -38,20 +39,21 @@ func main() {
 	}
 
 	w, h := 640, 480
-	ratio := float64(640) / float64(480)
+	//ratio := float64(640) / float64(480)
 	for !window.ShouldClose() {
 		//Do OpenGL stuff
 
 		gl.Viewport(0, 0, w, h)       // Make viewport
 		gl.Clear(gl.COLOR_BUFFER_BIT) // clear it
-		gl.MatrixMode(gl.PROJECTION)
-		gl.LoadIdentity()
-		gl.Ortho(-ratio, ratio, float64(-1), float64(1), float64(1), float64(-1))
-		gl.MatrixMode(gl.MODELVIEW)
-		gl.LoadIdentity()
-		angle := glfw.GetTime() * float64(50)
-		gl.Rotatef(float32(angle), float32(0), float32(0), float32(1))
-
+		/*
+			gl.MatrixMode(gl.PROJECTION)
+			gl.LoadIdentity()
+			gl.Ortho(-ratio, ratio, float64(-1), float64(1), float64(1), float64(-1))
+			gl.MatrixMode(gl.MODELVIEW)
+			gl.LoadIdentity()
+			angle := glfw.GetTime() * float64(50)
+			gl.Rotatef(float32(angle), float32(0), float32(0), float32(1))
+		///
 		gl.Begin(gl.TRIANGLES)
 		gl.Color3f(float32(1), float32(0), float32(0))
 		gl.Vertex3f(float32(-0.6), float32(-0.4), float32(0))
@@ -66,3 +68,4 @@ func main() {
 	}
 
 }
+*/

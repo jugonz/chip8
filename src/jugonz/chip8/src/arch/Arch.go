@@ -9,4 +9,5 @@ type Arch interface {
 	DrawScreen()
 	SetKeys()
 	ShouldDraw() bool // Return whether or not the screen must be drawn.
+	ShouldClose() bool
 }

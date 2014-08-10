@@ -28,9 +28,11 @@ type Chip8 struct {
 	Rando      *rand.Rand // PRNG
 	Fontset    [80]uint8
 	Screen     gfx.Screen
+	Debug      bool
+	Count      int
 }
 
-func MakeChip8() *Chip8 { // and initialize
+func MakeChip8(debug bool) *Chip8 { // and initialize
 	c8 := Chip8{}
 	c8.Opcode = Opcode{}
 	c8.PC = 0x200
@@ -61,6 +63,8 @@ func MakeChip8() *Chip8 { // and initialize
 		c8.Memory[char] = c8.Fontset[char]
 	}
 
+	c8.Screen = gfx.MakeScreen(640, 480, "Chip-8 Emulator")
+	c8.Debug = debug
 	return &c8
 }
 
@@ -100,6 +104,10 @@ func (c8 *Chip8) LoadGame(filePath string) {
 
 func (c8 *Chip8) EmulateCycle() {
 	c8.FetchOpcode() // Fetch instruction.
+	if c8.Debug {
+		fmt.Printf("On cycle %v, at mem loc %X\n", c8.Count, c8.PC)
+		c8.Count++
+	}
 	c8.DecodeExecute()
 }
 
@@ -206,6 +214,7 @@ func (c8 *Chip8) FetchOpcode() {
 
 func (c8 *Chip8) DrawScreen() {
 	c8.Screen.Draw(c8.GFX)
+	c8.DrawFlag = false
 }
 
 func (c8 *Chip8) SetKeys() {
@@ -214,4 +223,8 @@ func (c8 *Chip8) SetKeys() {
 
 func (c8 *Chip8) ShouldDraw() bool {
 	return c8.DrawFlag
+}
+
+func (c8 *Chip8) ShouldClose() bool {
+	return c8.Screen.Window.ShouldClose()
 }
