@@ -10,7 +10,7 @@ type Screen struct {
 	Width  int
 	Height int
 	Title  string
-	Window *glfw3.Window
+	Window glfw3.Window
 }
 
 func MakeScreen(width int, height int, title string) Screen {
@@ -41,7 +41,7 @@ func (s *Screen) Init() {
 		panic(fmt.Errorf("GLFW could not create window! Error: %v\n", err))
 	}
 	win.MakeContextCurrent()
-	s.Window = win
+	s.Window = *win
 
 	glfw3.SwapInterval(1) // Use videosync. (People say it's good.)
 
@@ -49,6 +49,29 @@ func (s *Screen) Init() {
 	if gl.Init() != 0 {
 		panic("OpenGL could not initialize!\n")
 	}
+}
+
+func (s *Screen) Draw(data [2048]bool) {
+	// I have no idea what I'm doing with OpenGL, so
+	// this code is adapted from https://github.com/nictuku/chip-8/blob/master/system/video.go
+
+	//gl.MatrixMode(gl.POLYGON)
+
+	for yline := 0; yline < s.Height; yline++ {
+
+		for xline := 0; xline < s.Width; xline++ {
+
+			x, y := float32(xline), float32(yline)
+			if !data[xline+yline*64] { // False = 0.
+				gl.Color3f(0, 0, 0)
+			} else { // True = 1.
+				gl.Color3f(1, 1, 1)
+			}
+			gl.Rectf(x, y, x+1, y+1)
+		}
+	}
+
+	s.Window.SwapBuffers()
 }
 
 func (s *Screen) Quit() {

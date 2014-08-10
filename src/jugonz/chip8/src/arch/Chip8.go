@@ -3,6 +3,7 @@ package arch
 import (
 	"fmt"
 	"io"
+	"jugonz/chip8/src/gfx"
 	"math/rand"
 	"os"
 	"time"
@@ -26,6 +27,7 @@ type Chip8 struct {
 	Keyboard   [16]bool   // true if pressed
 	Rando      *rand.Rand // PRNG
 	Fontset    [80]uint8
+	Screen     gfx.Screen
 }
 
 func MakeChip8() *Chip8 { // and initialize
@@ -203,9 +205,13 @@ func (c8 *Chip8) FetchOpcode() {
 }
 
 func (c8 *Chip8) DrawScreen() {
-
+	c8.Screen.Draw(c8.GFX)
 }
 
 func (c8 *Chip8) SetKeys() {
 
+}
+
+func (c8 *Chip8) ShouldDraw() bool {
+	return c8.DrawFlag
 }
