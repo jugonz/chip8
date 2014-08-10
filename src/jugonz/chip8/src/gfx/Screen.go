@@ -7,10 +7,12 @@ import (
 )
 
 type Screen struct {
-	Width  int
-	Height int
-	Title  string
-	Window glfw.Window
+	Width     int
+	Height    int
+	ResWidth  int
+	ResHeight int
+	Title     string
+	Window    glfw.Window
 }
 
 func MakeScreen(width int, height int, title string) Screen {
@@ -18,20 +20,23 @@ func MakeScreen(width int, height int, title string) Screen {
 	s.Width = width
 	s.Height = height
 	s.Title = title
-	s.Init()
 
+	// Chip8 resolution is hardcoded.
+	s.ResWidth = 64
+	s.ResHeight = 32
+
+	s.Init()
 	return s
 }
 
 func (s *Screen) Init() {
-	// Setup: Set GL error callback function...
+	// 1. Initialize GLFW and save window context.
 	glfw.SetErrorCallback(s.GFXError)
 
 	if !glfw.Init() { // Init GLFW3...
 		panic("GLFW3 failed to initialize!\n")
 	}
 
-	// Now, create a window!
 	win, err := glfw.CreateWindow(s.Width, s.Height, s.Title, nil, nil)
 	if err != nil {
 		panic(fmt.Errorf("GLFW could not create window! Error: %v\n", err))
@@ -39,49 +44,47 @@ func (s *Screen) Init() {
 
 	win.SetKeyCallback(keyCallback)
 	win.MakeContextCurrent()
-	s.Window = *win
-
 	glfw.SwapInterval(1) // Use videosync. (People say it's good.)
 
-	// Now, init OpenGL.
+	s.Window = *win
+
+	// 2. Initalize OpenGL.
 	if gl.Init() != 0 {
-		panic("OpenGL could not initialize!\n")
+		panic("OpenGL failed to initialize!\n")
 	}
 
+	// 3. Draw a black screen and set the coordinate system.
 	gl.ClearColor(0, 0, 0, 0)
 	gl.MatrixMode(gl.PROJECTION)
+	gl.Ortho(0, float64(s.ResWidth), float64(s.ResHeight), 0, 0, 1)
 
-	gl.Ortho(0, 64, 32, 0, 0, 1)
-	fmt.Println("screen done init")
+	fmt.Println("Screen successfully initialized.")
 }
 
-func (s *Screen) Draw(data [2048]bool) {
+func (s *Screen) Draw(data [64 * 32]bool) {
 	// I have no idea what I'm doing with OpenGL, so
-	// this code is adapted from https://github.com/nictuku/chip-8/blob/master/system/video.go
+	// this code is adapted from
+	// https://github.com/nictuku/chip-8/blob/master/system/video.go
 
 	//gl.Viewport(0, 0, s.Width, s.Height)
 	//gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	gl.MatrixMode(gl.POLYGON)
-	//gl.Begin(gl.POLYGON)
 
-	for yline := 0; yline < 32; yline++ {
-		for xline := 0; xline < 64; xline++ {
+	for xline := 0; xline < s.ResWidth; xline++ {
+		for yline := 0; yline < s.ResHeight; yline++ {
 
-			x, y := float32(xline), float32(yline)
-			if !data[xline+(yline*64)] { // False = 0.
-				fmt.Println("drawing meeeee...")
-				gl.Color3f(0, 0, 0)
-			} else { // True = 1.
-				fmt.Println("drawing youuuuu...")
-				gl.Color3f(1, 1, 1)
+			if !data[xline+(yline*s.ResWidth)] {
+				gl.Color3d(0, 0, 0)
+			} else {
+				gl.Color3d(1, 1, 1) // Draw white.
 			}
-			gl.Rectf(x, y, x+1, y+1)
+			x, y := float64(xline), float64(yline)
+			gl.Rectd(x, y, x+1, y+1)
 		}
 	}
 
-	//gl.End()
-	s.Window.SwapBuffers()
+	s.Window.SwapBuffers() // Display what we just drew.
 	glfw.PollEvents()
 }
 
