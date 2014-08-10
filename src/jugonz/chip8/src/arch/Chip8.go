@@ -18,8 +18,8 @@ type Chip8 struct {
 	Registers  [16]uint8
 	IndexReg   uint16
 	PC         uint16
-	GFX        [64 * 32]bool // true if on
-	DrawFlag   bool          // true if we just drew to the screen
+	GFX        [64][32]bool // true if on
+	DrawFlag   bool         // true if we just drew to the screen
 	DelayTimer uint8
 	SoundTimer uint8
 	Stack      [16]uint16

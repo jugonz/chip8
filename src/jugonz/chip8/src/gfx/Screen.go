@@ -61,7 +61,7 @@ func (s *Screen) Init() {
 	fmt.Println("Screen successfully initialized.")
 }
 
-func (s *Screen) Draw(data [64 * 32]bool) {
+func (s *Screen) Draw(data [64][32]bool) {
 	// I have no idea what I'm doing with OpenGL, so
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
@@ -71,15 +71,15 @@ func (s *Screen) Draw(data [64 * 32]bool) {
 
 	gl.MatrixMode(gl.POLYGON)
 
-	for xline := 0; xline < s.ResWidth; xline++ {
-		for yline := 0; yline < s.ResHeight; yline++ {
+	for xLine := 0; xLine < s.ResWidth; xLine++ {
+		for yLine := 0; yLine < s.ResHeight; yLine++ {
 
-			if !data[xline+(yline*s.ResWidth)] {
+			if !data[xLine][yLine] {
 				gl.Color3d(0, 0, 0)
 			} else {
 				gl.Color3d(1, 1, 1) // Draw white.
 			}
-			x, y := float64(xline), float64(yline)
+			x, y := float64(xLine), float64(yLine)
 			gl.Rectd(x, y, x+1, y+1)
 		}
 	}

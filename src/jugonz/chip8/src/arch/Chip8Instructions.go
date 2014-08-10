@@ -15,8 +15,10 @@ func (c8 *Chip8) ClearScreen() {
 	if c8.Debug {
 		fmt.Println("Executing ClearScreen()")
 	}
-	for index := 0; index < len(c8.GFX); index++ {
-		c8.GFX[index] = false // Clear the pixel on the screen.
+	for xIndex := 0; xIndex < len(c8.GFX); xIndex++ {
+		for yIndex := 0; yIndex < len(c8.GFX[0]); yIndex++ {
+			c8.GFX[xIndex][yIndex] = false // Clear the pixel on the screen.
+		}
 	}
 
 	c8.DrawFlag = true
@@ -33,7 +35,6 @@ func (c8 *Chip8) DrawSprite() {
 	height := c8.Opcode.Value & 0xF
 	width := uint16(8)         // Width is hardcoded.
 	shiftConst := uint16(0x80) // Shifting 128 right allows us to check indiv bits.
-	yScale := uint16(64)       // Don't quite understand this at the moment.
 
 	c8.Registers[0xF] = 0 // Assume we don't unset any pixels.
 
@@ -45,14 +46,13 @@ func (c8 *Chip8) DrawSprite() {
 
 			// If we need to draw this pixel...
 			if pixel&(shiftConst>>xLine) != 0 {
-				index := xCoord + xLine + (yScale * (yCoord + yLine))
 
 				// XOR the pixel, saving whether we set it.
-				if c8.GFX[index] {
+				if c8.GFX[xCoord+xLine][yCoord+yLine] {
 					c8.Registers[0xF] = 1
-					c8.GFX[index] = false
+					c8.GFX[xCoord+xLine][yCoord+yLine] = false
 				} else {
-					c8.GFX[index] = true
+					c8.GFX[xCoord+xLine][yCoord+yLine] = true
 				}
 
 			}
