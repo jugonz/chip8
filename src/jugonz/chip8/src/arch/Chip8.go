@@ -213,18 +213,20 @@ func (c8 *Chip8) FetchOpcode() {
 }
 
 func (c8 *Chip8) DrawScreen() {
-	c8.Screen.Draw(c8.GFX)
-	c8.DrawFlag = false
+	if c8.DrawFlag {
+		c8.Screen.Draw(c8.GFX)
+		c8.DrawFlag = false
+	}
 }
 
 func (c8 *Chip8) SetKeys() {
 
 }
 
-func (c8 *Chip8) ShouldDraw() bool {
-	return c8.DrawFlag
-}
-
 func (c8 *Chip8) ShouldClose() bool {
 	return c8.Screen.Window.ShouldClose()
+}
+
+func (c8 *Chip8) Quit() {
+	c8.Screen.Quit()
 }

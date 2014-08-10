@@ -15,10 +15,10 @@ func main() {
 		count++
 		chip8.EmulateCycle()
 
-		if chip8.ShouldDraw() {
-			chip8.DrawScreen()
-		}
+		chip8.DrawScreen() // Only draws if needed.
 
 		chip8.SetKeys()
 	}
+
+	chip8.Quit()
 }
