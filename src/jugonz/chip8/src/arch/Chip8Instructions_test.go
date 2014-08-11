@@ -1,6 +1,9 @@
 package arch
 
-import "testing"
+import (
+	"jugonz/chip8/src/gfx"
+	"testing"
+)
 
 func TestSetup(t *testing.T) {
 	c8 := MakeChip8(false)
@@ -74,14 +77,15 @@ func TestSkipInstr(t *testing.T) {
 
 func TestClearScreen(t *testing.T) {
 	c8 := MakeChip8(false)
+	screen := c8.Screen.(*gfx.Screen)
 
 	// Draw something to the screen, and see that it is not empty.
 	c8.Opcode = MakeOpcode(0xD324)
 	c8.DecodeExecute()
 
 	clear := true
-	for index, _ := range c8.GFX {
-		for _, value := range c8.GFX[index] {
+	for index, _ := range screen.Pixels {
+		for _, value := range screen.Pixels[index] {
 			if value {
 				clear = false
 				break
@@ -97,8 +101,8 @@ func TestClearScreen(t *testing.T) {
 	c8.DecodeExecute()
 
 	clear = true
-	for index, _ := range c8.GFX {
-		for _, value := range c8.GFX[index] {
+	for index, _ := range screen.Pixels {
+		for _, value := range screen.Pixels[index] {
 			if value {
 				clear = false
 				break

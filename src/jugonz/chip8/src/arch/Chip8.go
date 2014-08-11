@@ -13,29 +13,34 @@ import (
  * Datatype to describe the architecture of a Chip8 system.
  */
 type Chip8 struct {
+	// Core structural components.
 	Opcode     Opcode
 	Memory     [4096]uint8
 	Registers  [16]uint8
 	IndexReg   uint16
 	PC         uint16
-	GFX        [64][32]bool // true if on
-	DrawFlag   bool         // true if we just drew to the screen
 	DelayTimer uint8
 	SoundTimer uint8
 	Stack      [16]uint16
 	SP         uint16
-	Keyboard   [16]bool   // true if pressed
 	Rando      *rand.Rand // PRNG
+
+	// Interactive components.
+	Keyboard   [16]bool // True if key pressed.
+	Screen     gfx.Drawable
 	Fontset    [80]uint8
-	Screen     gfx.Screen
-	Debug      bool
-	Count      int
+	DrawFlag   bool // True if we just drew to the screen.
+	Controller gfx.Interactible
+
+	// Debug components.
+	Debug bool
+	Count int
 }
 
 func MakeChip8(debug bool) *Chip8 { // and initialize
 	c8 := Chip8{}
 	c8.Opcode = Opcode{}
-	c8.PC = 0x200
+	c8.PC = 0x200 // Starting PC address is static.
 	c8.Rando = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// Define fonset.
@@ -57,13 +62,14 @@ func MakeChip8(debug bool) *Chip8 { // and initialize
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
-
 	// Load fontset into memory.
 	for char := 0; char < len(c8.Fontset); char++ {
 		c8.Memory[char] = c8.Fontset[char]
 	}
 
-	c8.Screen = gfx.MakeScreen(640, 480, "Chip-8 Emulator")
+	screen := gfx.MakeScreen(640, 480, "Chip-8 Emulator")
+	c8.Screen = &screen
+	c8.Controller = &screen
 	c8.Debug = debug
 	return &c8
 }
@@ -214,19 +220,19 @@ func (c8 *Chip8) FetchOpcode() {
 
 func (c8 *Chip8) DrawScreen() {
 	if c8.DrawFlag {
-		c8.Screen.Draw(c8.GFX)
+		c8.Screen.Draw()
 		c8.DrawFlag = false
 	}
 }
 
 func (c8 *Chip8) SetKeys() {
-	c8.Screen.SetKeys()
+	c8.Controller.SetKeys()
 }
 
 func (c8 *Chip8) ShouldClose() bool {
-	return c8.Screen.Window.ShouldClose()
+	return c8.Controller.ShouldClose()
 }
 
 func (c8 *Chip8) Quit() {
-	c8.Screen.Quit()
+	c8.Controller.Quit()
 }

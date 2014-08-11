@@ -15,11 +15,8 @@ func (c8 *Chip8) ClearScreen() {
 	if c8.Debug {
 		fmt.Println("Executing ClearScreen()")
 	}
-	for xIndex := 0; xIndex < len(c8.GFX); xIndex++ {
-		for yIndex := 0; yIndex < len(c8.GFX[0]); yIndex++ {
-			c8.GFX[xIndex][yIndex] = false // Clear the pixel on the screen.
-		}
-	}
+
+	c8.Screen.ClearScreen()
 
 	c8.DrawFlag = true
 	c8.PC += 2
@@ -48,11 +45,11 @@ func (c8 *Chip8) DrawSprite() {
 			if pixel&(shiftConst>>xLine) != 0 {
 
 				// XOR the pixel, saving whether we set it.
-				if c8.GFX[xCoord+xLine][yCoord+yLine] {
+				if c8.Screen.GetPixel(xCoord+xLine, yCoord+yLine) {
 					c8.Registers[0xF] = 1
-					c8.GFX[xCoord+xLine][yCoord+yLine] = false
+					c8.Screen.ClearPixel(xCoord+xLine, yCoord+yLine)
 				} else {
-					c8.GFX[xCoord+xLine][yCoord+yLine] = true
+					c8.Screen.SetPixel(xCoord+xLine, yCoord+yLine)
 				}
 
 			}

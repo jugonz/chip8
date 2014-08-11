@@ -11,6 +11,7 @@ type Screen struct {
 	Height    int
 	ResWidth  int
 	ResHeight int
+	Pixels    [64][32]bool // Chip8 resolution is static.
 	Title     string
 	Window    glfw.Window
 }
@@ -22,8 +23,8 @@ func MakeScreen(width int, height int, title string) Screen {
 	s.Title = title
 
 	// Chip8 resolution is hardcoded.
-	s.ResWidth = 64
-	s.ResHeight = 32
+	s.ResWidth = len(s.Pixels)
+	s.ResHeight = len(s.Pixels[0])
 
 	s.Init()
 	return s
@@ -61,7 +62,10 @@ func (s *Screen) Init() {
 	fmt.Println("Screen successfully initialized.")
 }
 
-func (s *Screen) Draw(data [64][32]bool) {
+/**
+ * Methods to implement the Drawable interface.
+ */
+func (s *Screen) Draw() {
 	// I have no idea what I'm doing with OpenGL, so
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
@@ -74,7 +78,7 @@ func (s *Screen) Draw(data [64][32]bool) {
 	for xLine := 0; xLine < s.ResWidth; xLine++ {
 		for yLine := 0; yLine < s.ResHeight; yLine++ {
 
-			if !data[xLine][yLine] {
+			if !s.Pixels[xLine][yLine] {
 				gl.Color3d(0, 0, 0)
 			} else {
 				gl.Color3d(1, 1, 1) // Draw white.
@@ -87,14 +91,44 @@ func (s *Screen) Draw(data [64][32]bool) {
 	s.Window.SwapBuffers() // Display what we just drew.
 }
 
+func (s *Screen) ClearScreen() {
+	for xLine := 0; xLine < s.ResWidth; xLine++ {
+		for yLine := 0; yLine < s.ResHeight; yLine++ {
+			s.Pixels[xLine][yLine] = false
+		}
+	}
+}
+
+func (s *Screen) SetPixel(x, y uint16) {
+	s.Pixels[x][y] = true
+}
+
+func (s *Screen) ClearPixel(x, y uint16) {
+	s.Pixels[x][y] = false
+}
+
+func (s *Screen) GetPixel(x, y uint16) bool {
+	return s.Pixels[x][y]
+}
+
+/**
+ * Methods to implement the Interactible interface.
+ */
 func (s *Screen) SetKeys() {
 	glfw.PollEvents()
+}
+
+func (s *Screen) ShouldClose() bool {
+	return s.Window.ShouldClose()
 }
 
 func (s *Screen) Quit() {
 	glfw.Terminate()
 }
 
+/**
+ * Utility methods used for internal GLFW state.
+ */
 func (s *Screen) GFXError(err glfw.ErrorCode, msg string) {
 	panic(fmt.Errorf("GLFW Error: %v: %v\n", err, msg))
 }
