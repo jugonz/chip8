@@ -85,6 +85,9 @@ func (s *Screen) Draw(data [64][32]bool) {
 	}
 
 	s.Window.SwapBuffers() // Display what we just drew.
+}
+
+func (s *Screen) SetKeys() {
 	glfw.PollEvents()
 }
 

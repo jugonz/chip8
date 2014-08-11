@@ -220,7 +220,7 @@ func (c8 *Chip8) DrawScreen() {
 }
 
 func (c8 *Chip8) SetKeys() {
-
+	c8.Screen.SetKeys()
 }
 
 func (c8 *Chip8) ShouldClose() bool {
