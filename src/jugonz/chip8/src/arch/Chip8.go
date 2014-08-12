@@ -26,11 +26,10 @@ type Chip8 struct {
 	Rando      *rand.Rand // PRNG
 
 	// Interactive components.
-	Keyboard   [16]bool // True if key pressed.
+	Controller gfx.Interactible
 	Screen     gfx.Drawable
 	Fontset    [80]uint8
 	DrawFlag   bool // True if we just drew to the screen.
-	Controller gfx.Interactible
 
 	// Debug components.
 	Debug bool

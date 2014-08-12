@@ -176,7 +176,7 @@ func (c8 *Chip8) SkipInstrKeyPressed() {
 	if c8.Debug {
 		fmt.Println("Executing SkipInstrKeyPressed()")
 	}
-	if c8.Keyboard[c8.Opcode.Xreg] {
+	if c8.Controller.KeyPressed(c8.Opcode.Xreg) {
 		c8.PC += 4
 		return
 	}
@@ -188,7 +188,7 @@ func (c8 *Chip8) SkipInstrKeyNotPressed() {
 	if c8.Debug {
 		fmt.Println("Executing SkipInstrKeyNotPressed()")
 	}
-	if !c8.Keyboard[c8.Opcode.Xreg] {
+	if !c8.Controller.KeyPressed(c8.Opcode.Xreg) {
 		c8.PC += 4
 		return
 	}
@@ -366,8 +366,8 @@ func (c8 *Chip8) GetKeyPress() {
 	if c8.Debug {
 		fmt.Println("Executing GetKeyPress()")
 	}
-	for key := 0; key < len(c8.Keyboard); key++ {
-		if c8.Keyboard[c8.Opcode.Xreg] {
+	for key := 0; key < 16; key++ { // TODO: REMOVE HARDCODE
+		if c8.Controller.KeyPressed(c8.Opcode.Xreg) {
 			c8.Registers[c8.Opcode.Xreg] = uint8(key)
 			c8.PC += 2
 			return

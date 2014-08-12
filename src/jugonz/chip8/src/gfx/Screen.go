@@ -6,6 +6,15 @@ import (
 	glfw "github.com/go-gl/glfw3"
 )
 
+// Arrays cannot be const in Go, so the keyboard layout is a var.
+var keyLayout = [16]glfw.Key{
+	glfw.Key0, glfw.Key1, glfw.Key2, glfw.Key3,
+	glfw.Key4, glfw.Key5, glfw.Key6, glfw.Key7,
+	glfw.Key8, glfw.Key9, glfw.KeyA, glfw.KeyB,
+	glfw.KeyC, glfw.KeyD, glfw.KeyE, glfw.KeyF,
+}
+var keyQuit = glfw.KeyEscape
+
 type Screen struct {
 	Width     int
 	Height    int
@@ -14,6 +23,7 @@ type Screen struct {
 	Pixels    [64][32]bool // Chip8 resolution is static.
 	Title     string
 	Window    glfw.Window
+	Keyboard  [16]bool // True if key pressed.
 }
 
 func MakeScreen(width int, height int, title string) Screen {
@@ -43,7 +53,7 @@ func (s *Screen) Init() {
 		panic(fmt.Errorf("GLFW could not create window! Error: %v\n", err))
 	}
 
-	win.SetKeyCallback(keyCallback)
+	win.SetInputMode(glfw.StickyKeys, 1) // Turn on sticky keys to avoid callbacks!
 	win.MakeContextCurrent()
 	glfw.SwapInterval(1) // Use videosync. (People say it's good.)
 
@@ -115,7 +125,33 @@ func (s *Screen) GetPixel(x, y uint16) bool {
  * Methods to implement the Interactible interface.
  */
 func (s *Screen) SetKeys() {
-	glfw.PollEvents()
+	// Handle input ourselves!
+	for keyNum, key := range keyLayout {
+		s.ProcessKey(keyNum, key)
+	}
+
+	// Special case: if escape key is pressed, just quit.
+	if quitState := s.Window.GetKey(keyQuit); quitState == glfw.Press {
+		s.Window.SetShouldClose(true)
+	}
+}
+
+func (s *Screen) ProcessKey(keyNum int, key glfw.Key) {
+	action := s.Window.GetKey(key)
+
+	switch action {
+	case glfw.Press:
+		s.Keyboard[keyNum] = true
+	case glfw.Release:
+		s.Keyboard[keyNum] = false
+	default:
+		// Ignore key repeat.
+	}
+}
+
+func (s *Screen) KeyPressed(key uint8) bool {
+	// WARNING, RACE CONDITION ON KEYBOARD!
+	return s.Keyboard[key]
 }
 
 func (s *Screen) ShouldClose() bool {
@@ -131,10 +167,4 @@ func (s *Screen) Quit() {
  */
 func (s *Screen) GFXError(err glfw.ErrorCode, msg string) {
 	panic(fmt.Errorf("GLFW Error: %v: %v\n", err, msg))
-}
-
-func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	if key == glfw.KeyEscape && action == glfw.Press {
-		w.SetShouldClose(true)
-	}
 }
