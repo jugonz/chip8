@@ -70,8 +70,6 @@ func (s *Screen) Init() {
 	gl.ClearColor(0, 0, 0, 0)
 	gl.MatrixMode(gl.PROJECTION)
 	gl.Ortho(0, float64(s.ResWidth), float64(s.ResHeight), 0, 0, 1)
-
-	fmt.Println("Screen successfully initialized.")
 }
 
 /**
@@ -135,6 +133,7 @@ func (s *Screen) SetKeys() {
 	defer s.KeyMutex.Unlock()
 
 	// Handle input ourselves!
+	glfw.PollEvents()
 	for keyNum, key := range keyLayout {
 		s.ProcessKey(keyNum, key)
 	}
@@ -150,6 +149,7 @@ func (s *Screen) ProcessKey(keyNum int, key glfw.Key) {
 
 	switch action {
 	case glfw.Press:
+		fmt.Printf("Key %X pressed!\n", keyNum)
 		s.Keyboard[keyNum] = true
 	case glfw.Release:
 		s.Keyboard[keyNum] = false
