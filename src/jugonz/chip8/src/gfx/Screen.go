@@ -4,6 +4,7 @@ import (
 	"fmt"
 	gl "github.com/go-gl/gl"
 	glfw "github.com/go-gl/glfw3"
+	"sync"
 )
 
 // Arrays cannot be const in Go, so the keyboard layout is a var.
@@ -24,6 +25,7 @@ type Screen struct {
 	Title     string
 	Window    glfw.Window
 	Keyboard  [16]bool // True if key pressed.
+	KeyMutex  sync.Mutex
 }
 
 func MakeScreen(width int, height int, title string) Screen {
@@ -121,10 +123,17 @@ func (s *Screen) GetPixel(x, y uint16) bool {
 	return s.Pixels[x][y]
 }
 
+func (s *Screen) InBounds(x, y uint16) bool {
+	return int(x) < s.ResWidth && int(y) < s.ResHeight
+}
+
 /**
  * Methods to implement the Interactible interface.
  */
 func (s *Screen) SetKeys() {
+	s.KeyMutex.Lock()
+	defer s.KeyMutex.Unlock()
+
 	// Handle input ourselves!
 	for keyNum, key := range keyLayout {
 		s.ProcessKey(keyNum, key)
@@ -150,7 +159,9 @@ func (s *Screen) ProcessKey(keyNum int, key glfw.Key) {
 }
 
 func (s *Screen) KeyPressed(key uint8) bool {
-	// WARNING, RACE CONDITION ON KEYBOARD!
+	s.KeyMutex.Lock()
+	defer s.KeyMutex.Unlock()
+
 	return s.Keyboard[key]
 }
 

@@ -41,15 +41,18 @@ func (c8 *Chip8) DrawSprite() {
 
 		for xLine = 0; xLine < width; xLine++ {
 
+			x, y := xCoord+xLine, yCoord+yLine
+			inBounds := c8.Screen.InBounds(x, y)
+
 			// If we need to draw this pixel...
-			if pixel&(shiftConst>>xLine) != 0 {
+			if pixel&(shiftConst>>xLine) != 0 && inBounds {
 
 				// XOR the pixel, saving whether we set it.
-				if c8.Screen.GetPixel(xCoord+xLine, yCoord+yLine) {
+				if c8.Screen.GetPixel(x, y) {
 					c8.Registers[0xF] = 1
-					c8.Screen.ClearPixel(xCoord+xLine, yCoord+yLine)
+					c8.Screen.ClearPixel(x, y)
 				} else {
-					c8.Screen.SetPixel(xCoord+xLine, yCoord+yLine)
+					c8.Screen.SetPixel(x, y)
 				}
 
 			}
