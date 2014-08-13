@@ -422,6 +422,7 @@ func (c8 *Chip8) SetSoundTimer() {
 		fmt.Println("Executing SetSoundTimer()")
 	}
 	c8.SoundTimer = c8.Registers[c8.Opcode.Xreg]
+	//  fmt.Print("\x07\n") is how to beep
 
 	c8.PC += 2
 }
