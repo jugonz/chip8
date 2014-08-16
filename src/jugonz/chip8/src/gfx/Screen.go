@@ -4,7 +4,6 @@ import (
 	"fmt"
 	gl "github.com/go-gl/gl"
 	glfw "github.com/go-gl/glfw3"
-	"sync"
 )
 
 // Arrays cannot be const in Go, so the keyboard layout is a var.
@@ -21,22 +20,25 @@ type Screen struct {
 	Height    int
 	ResWidth  int
 	ResHeight int
-	Pixels    [64][32]bool // Chip8 resolution is static.
+	Pixels    [][]bool // Chip8 resolution is static.
 	Title     string
 	Window    glfw.Window
 	Keyboard  [16]bool // True if key pressed.
-	KeyMutex  sync.Mutex
 }
 
-func MakeScreen(width int, height int, title string) Screen {
+func MakeScreen(width int, height int, resWidth int, resHeight int,
+	title string) Screen {
 	s := Screen{}
 	s.Width = width
 	s.Height = height
 	s.Title = title
+	s.ResWidth = resWidth
+	s.ResHeight = resHeight
 
-	// Chip8 resolution is hardcoded.
-	s.ResWidth = len(s.Pixels)
-	s.ResHeight = len(s.Pixels[0])
+	s.Pixels = make([][]bool, s.ResWidth)
+	for col := range s.Pixels {
+		s.Pixels[col] = make([]bool, s.ResHeight)
+	}
 
 	s.Init()
 	return s
@@ -80,8 +82,8 @@ func (s *Screen) Draw() {
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
 
-	//gl.Viewport(0, 0, s.Width, s.Height)
-	//gl.Clear(gl.COLOR_BUFFER_BIT)
+	gl.Viewport(0, 0, s.Width, s.Height)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	gl.MatrixMode(gl.POLYGON)
 
@@ -129,9 +131,6 @@ func (s *Screen) InBounds(x, y uint16) bool {
  * Methods to implement the Interactible interface.
  */
 func (s *Screen) SetKeys() {
-	s.KeyMutex.Lock()
-	defer s.KeyMutex.Unlock()
-
 	// Handle input ourselves!
 	glfw.PollEvents()
 	for keyNum, key := range keyLayout {
@@ -159,9 +158,6 @@ func (s *Screen) ProcessKey(keyNum int, key glfw.Key) {
 }
 
 func (s *Screen) KeyPressed(key uint8) bool {
-	s.KeyMutex.Lock()
-	defer s.KeyMutex.Unlock()
-
 	return s.Keyboard[key]
 }
 

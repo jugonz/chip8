@@ -8,6 +8,7 @@ type Arch interface {
 	EmulateCycle()
 	DrawScreen()
 	SetKeys()
+	UpdateTimers()
 	ShouldClose() bool
 	Quit()
 }

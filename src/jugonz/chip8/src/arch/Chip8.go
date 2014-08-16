@@ -6,7 +6,6 @@ import (
 	"jugonz/chip8/src/gfx"
 	"math/rand"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -33,9 +32,8 @@ type Chip8 struct {
 	DrawFlag   bool // True if we just drew to the screen.
 
 	// Debug components.
-	Debug      bool
-	Count      int
-	TimerMutex sync.Mutex
+	Debug bool
+	Count int
 }
 
 func MakeChip8(debug bool) *Chip8 { // and initialize
@@ -68,7 +66,7 @@ func MakeChip8(debug bool) *Chip8 { // and initialize
 		c8.Memory[char] = c8.Fontset[char]
 	}
 
-	screen := gfx.MakeScreen(640, 480, "Chip-8 Emulator")
+	screen := gfx.MakeScreen(640, 480, 64, 32, "Chip-8 Emulator")
 	c8.Screen = &screen
 	c8.Controller = &screen
 	c8.Debug = debug
@@ -116,7 +114,7 @@ func (c8 *Chip8) EmulateCycle() {
 		c8.Count++
 	}
 	c8.DecodeExecute()
-	c8.HandleTimers() // Handle timers in separate goroutine.
+
 }
 
 func (c8 *Chip8) FetchOpcode() {
@@ -220,44 +218,7 @@ func (c8 *Chip8) DecodeExecute() {
 	}
 }
 
-func (c8 *Chip8) HandleTimers() {
-	/*
-		for _ = range time.Tick(time.Second / 60) {
-			//fmt.Printf("HandleTimers running!\n")
-			c8.UpdateTimers()
-		}
-	*/
-	c8.UpdateTimers()
-}
-
-func (c8 *Chip8) C8GetDelayTimer() uint8 {
-	c8.TimerMutex.Lock()
-	defer c8.TimerMutex.Unlock()
-	return c8.DelayTimer
-}
-
-func (c8 *Chip8) GetSoundTimer() uint8 {
-	c8.TimerMutex.Lock()
-	defer c8.TimerMutex.Unlock()
-	return c8.SoundTimer
-}
-
-func (c8 *Chip8) C8SetSoundTimer(value uint8) {
-	c8.TimerMutex.Lock()
-	defer c8.TimerMutex.Unlock()
-	c8.SoundTimer = value
-}
-
-func (c8 *Chip8) C8SetDelayTimer(value uint8) {
-	c8.TimerMutex.Lock()
-	defer c8.TimerMutex.Unlock()
-	c8.DelayTimer = value
-}
-
 func (c8 *Chip8) UpdateTimers() {
-	c8.TimerMutex.Lock()
-	defer c8.TimerMutex.Unlock()
-
 	if c8.DelayTimer > 0 {
 		//fmt.Printf("Updating delay timer: %v\n", c8.DelayTimer)
 		c8.DelayTimer--
