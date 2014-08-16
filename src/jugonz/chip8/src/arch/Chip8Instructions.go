@@ -383,7 +383,8 @@ func (c8 *Chip8) GetDelayTimer() {
 	if c8.Debug {
 		fmt.Println("Executing GetDelayTimer()")
 	}
-	c8.Registers[c8.Opcode.Xreg] = c8.DelayTimer // Save delay timer in reg.
+	//c8.Registers[c8.Opcode.Xreg] = c8.DelayTimer // Save delay timer in reg.
+	c8.Registers[c8.Opcode.Xreg] = c8.C8GetDelayTimer()
 
 	c8.PC += 2
 }
@@ -412,7 +413,8 @@ func (c8 *Chip8) SetDelayTimer() {
 	if c8.Debug {
 		fmt.Println("Executing SetDelayTimer()")
 	}
-	c8.DelayTimer = c8.Registers[c8.Opcode.Xreg]
+	//c8.DelayTimer = c8.Registers[c8.Opcode.Xreg]
+	c8.C8SetDelayTimer(c8.Registers[c8.Opcode.Xreg])
 
 	c8.PC += 2
 }
@@ -421,8 +423,8 @@ func (c8 *Chip8) SetSoundTimer() {
 	if c8.Debug {
 		fmt.Println("Executing SetSoundTimer()")
 	}
-	c8.SoundTimer = c8.Registers[c8.Opcode.Xreg]
-	//  fmt.Print("\x07\n") is how to beep
+	//c8.SoundTimer = c8.Registers[c8.Opcode.Xreg]
+	c8.C8SetSoundTimer(c8.Registers[c8.Opcode.Xreg])
 
 	c8.PC += 2
 }
