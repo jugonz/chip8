@@ -5,10 +5,6 @@ package arch
  */
 type Arch interface {
 	LoadGame(filepath string)
-	EmulateCycle()
-	DrawScreen()
-	SetKeys()
-	UpdateTimers()
-	ShouldClose() bool
+	Run() // Returns when game or user quits.
 	Quit()
 }

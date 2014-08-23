@@ -20,7 +20,7 @@ type Screen struct {
 	Height    int
 	ResWidth  int
 	ResHeight int
-	Pixels    [][]bool // Chip8 resolution is static.
+	Pixels    [][]bool
 	Title     string
 	Window    glfw.Window
 	Keyboard  [16]bool // True if key pressed.
@@ -59,7 +59,6 @@ func (s *Screen) Init() {
 
 	win.SetInputMode(glfw.StickyKeys, 1) // Turn on sticky keys to avoid callbacks!
 	win.MakeContextCurrent()
-	glfw.SwapInterval(1) // Use videosync. (People say it's good.)
 
 	s.Window = *win
 
@@ -67,6 +66,8 @@ func (s *Screen) Init() {
 	if gl.Init() != 0 {
 		panic("OpenGL failed to initialize!\n")
 	}
+
+	glfw.SwapInterval(1) // Use videosync. (People say it's good.)
 
 	// 3. Draw a black screen and set the coordinate system.
 	gl.ClearColor(0, 0, 0, 0)
@@ -82,8 +83,8 @@ func (s *Screen) Draw() {
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
 
-	gl.Viewport(0, 0, s.Width, s.Height)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
+	//gl.Viewport(0, 0, s.Width, s.Height)
+	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	gl.MatrixMode(gl.POLYGON)
 
@@ -97,6 +98,7 @@ func (s *Screen) Draw() {
 			}
 			x, y := float64(xLine), float64(yLine)
 			gl.Rectd(x, y, x+1, y+1)
+
 		}
 	}
 
@@ -111,12 +113,8 @@ func (s *Screen) ClearScreen() {
 	}
 }
 
-func (s *Screen) SetPixel(x, y uint16) {
-	s.Pixels[x][y] = true
-}
-
-func (s *Screen) ClearPixel(x, y uint16) {
-	s.Pixels[x][y] = false
+func (s *Screen) XorPixel(x, y uint16) {
+	s.Pixels[x][y] = s.Pixels[x][y] != true
 }
 
 func (s *Screen) GetPixel(x, y uint16) bool {

@@ -13,13 +13,7 @@ func main() {
 
 	chip8.LoadGame("../../c8games/PONG2")
 
-	for !chip8.ShouldClose() {
-		chip8.EmulateCycle()
-
-		chip8.DrawScreen() // Only draws if needed.
-		chip8.SetKeys()
-		chip8.UpdateTimers()
-	}
+	chip8.Run() // Terminates when the quit key is pressed.
 
 	chip8.Quit()
 	runtime.UnlockOSThread()

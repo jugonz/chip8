@@ -38,16 +38,19 @@ func TestSkipInstr(t *testing.T) {
 	// First, add the literal (A3) to a register.
 	c8.Opcode = MakeOpcode(0x71A3)
 	c8.DecodeExecute()
+	c8.IncrementPC()
 
 	// Now, check the PC.
 	if c8.PC != 0x202 {
-		t.Error("PC not properly updated!\n")
+		t.Errorf("PC not properly updated! Expected: 0x202 got: %X\n",
+			c8.PC)
 	}
 
 	// Now, check that an instruction is skipped when
 	// comparing the literal.
 	c8.Opcode = MakeOpcode(0x31A3)
 	c8.DecodeExecute()
+	c8.IncrementPC()
 
 	if c8.PC != 0x206 {
 		t.Error("PC did not skip an instruction after a literal compare!\n")
@@ -57,6 +60,7 @@ func TestSkipInstr(t *testing.T) {
 	// when comparing the same literal.
 	c8.Opcode = MakeOpcode(0x41A3)
 	c8.DecodeExecute()
+	c8.IncrementPC()
 
 	if c8.PC != 0x208 {
 		t.Error("PC incorrectly skipped an instruction after a literal compare!\n")
@@ -66,9 +70,11 @@ func TestSkipInstr(t *testing.T) {
 	// leads to an instruction skip.
 	c8.Opcode = MakeOpcode(0x72A3) // Add literal to another register.
 	c8.DecodeExecute()
+	c8.IncrementPC()
 
 	c8.Opcode = MakeOpcode(0x5120)
 	c8.DecodeExecute()
+	c8.IncrementPC()
 
 	if c8.PC != 0x20E {
 		t.Error("PC did not skip an instruction on register compare!\n")

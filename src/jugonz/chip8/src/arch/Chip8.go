@@ -24,6 +24,7 @@ type Chip8 struct {
 	Stack      [16]uint16
 	SP         uint16
 	Rando      *rand.Rand // PRNG
+	UpdatePC   uint16     // Amount of cycles to update PC.
 
 	// Interactive components.
 	Controller gfx.Interactible
@@ -32,8 +33,9 @@ type Chip8 struct {
 	DrawFlag   bool // True if we just drew to the screen.
 
 	// Debug components.
-	Debug bool
-	Count int
+	Debug     bool
+	Count     int
+	CycleRate time.Duration
 }
 
 func MakeChip8(debug bool) *Chip8 { // and initialize
@@ -70,6 +72,7 @@ func MakeChip8(debug bool) *Chip8 { // and initialize
 	c8.Screen = &screen
 	c8.Controller = &screen
 	c8.Debug = debug
+	c8.CycleRate = time.Second / 10800
 	return &c8
 }
 
@@ -104,7 +107,16 @@ func (c8 *Chip8) LoadGame(filePath string) {
 	for index, value := range buffer {
 		c8.Memory[index+0x200] = value
 	}
+}
 
+func (c8 *Chip8) Run() {
+	for _ = range time.Tick(c8.CycleRate) {
+		if c8.Controller.ShouldClose() {
+			return
+		}
+
+		c8.EmulateCycle()
+	}
 }
 
 func (c8 *Chip8) EmulateCycle() {
@@ -113,8 +125,12 @@ func (c8 *Chip8) EmulateCycle() {
 		fmt.Printf("On cycle %v, at mem loc %X\n", c8.Count, c8.PC)
 		c8.Count++
 	}
-	c8.DecodeExecute()
 
+	c8.DecodeExecute()
+	c8.DrawScreen() // Only draws if needed.
+	c8.SetKeys()
+	c8.UpdateTimers()
+	c8.IncrementPC()
 }
 
 func (c8 *Chip8) FetchOpcode() {
@@ -124,6 +140,9 @@ func (c8 *Chip8) FetchOpcode() {
 }
 
 func (c8 *Chip8) DecodeExecute() {
+	// Update PC by 2 unless overridden by an instruction.
+	c8.UpdatePC = 2
+
 	switch c8.Opcode.Value >> 12 { // Decode (big-ass switch statement)
 	case 0x0:
 		switch c8.Opcode.Value & 0xFF {
@@ -218,18 +237,6 @@ func (c8 *Chip8) DecodeExecute() {
 	}
 }
 
-func (c8 *Chip8) UpdateTimers() {
-	if c8.DelayTimer > 0 {
-		//fmt.Printf("Updating delay timer: %v\n", c8.DelayTimer)
-		c8.DelayTimer--
-	}
-	if c8.SoundTimer > 0 {
-		fmt.Printf("\x07") // BEEP!
-		//fmt.Printf("Updating sound timer: %v\n", c8.SoundTimer)
-		c8.SoundTimer--
-	}
-}
-
 func (c8 *Chip8) DrawScreen() {
 	if c8.DrawFlag {
 		c8.Screen.Draw()
@@ -241,8 +248,18 @@ func (c8 *Chip8) SetKeys() {
 	c8.Controller.SetKeys()
 }
 
-func (c8 *Chip8) ShouldClose() bool {
-	return c8.Controller.ShouldClose()
+func (c8 *Chip8) UpdateTimers() {
+	if c8.DelayTimer > 0 {
+		c8.DelayTimer--
+	}
+	if c8.SoundTimer > 0 {
+		fmt.Printf("\x07") // BEEP!
+		c8.SoundTimer--
+	}
+}
+
+func (c8 *Chip8) IncrementPC() {
+	c8.PC += c8.UpdatePC
 }
 
 func (c8 *Chip8) Quit() {
