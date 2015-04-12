@@ -2,8 +2,8 @@ package gfx
 
 import (
 	"fmt"
-	gl "github.com/go-gl/gl"
-	glfw "github.com/go-gl/glfw3"
+	gl "github.com/go-gl/gl/v2.1/gl"
+	glfw "github.com/go-gl/glfw/v3.0/glfw"
 )
 
 // Arrays cannot be const in Go, so the keyboard layout is a var.
@@ -63,7 +63,8 @@ func (s *Screen) Init() {
 	s.Window = *win
 
 	// 2. Initalize OpenGL.
-	if gl.Init() != 0 {
+	err = gl.Init()
+	if err != nil {
 		panic("OpenGL failed to initialize!\n")
 	}
 
@@ -146,7 +147,7 @@ func (s *Screen) ProcessKey(keyNum int, key glfw.Key) {
 
 	switch action {
 	case glfw.Press:
-		fmt.Printf("Key %X pressed!\n", keyNum)
+		//fmt.Printf("Key %X pressed!\n", keyNum)
 		s.Keyboard[keyNum] = true
 	case glfw.Release:
 		s.Keyboard[keyNum] = false

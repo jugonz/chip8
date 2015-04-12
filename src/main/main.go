@@ -14,7 +14,7 @@ var chip8 arch.Arch
 func main() {
 	flag.Parse()
 	if *path == "" {
-		fmt.Printf("No chip8 file path provided, quitting!\n")
+		fmt.Printf("No Chip8 file path provided, quitting!\n")
 		return
 	}
 
