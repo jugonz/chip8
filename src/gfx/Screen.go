@@ -84,9 +84,6 @@ func (s *Screen) Draw() {
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
 
-	//gl.Viewport(0, 0, s.Width, s.Height)
-	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
 	gl.MatrixMode(gl.POLYGON)
 
 	for xLine := 0; xLine < s.ResWidth; xLine++ {

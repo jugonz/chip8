@@ -1,0 +1,26 @@
+Chip8
+
+Chip8 implements the CHIP-8 interpreted programming language from the 1970's.
+CHIP-8 provides a description of the virtual machine that it runs on, and
+Chip8 emulates this machine well enough to run many original games for the system
+(23 public domain games are included in /c8games).
+
+Chip8 is written in Go and uses OpenGL to display graphics. It relies on
+the go-gl and glfw packages for OpenGL support (they should be able to
+be installed via go get). When I wrote Chip8, the go-gl package had no explicit
+OpenGL version dependency, but now you must explicitly pick a version of OpenGL
+to use with it. On my system, this is OpenGL 2.1, but your mileage may vary.
+With these packages, Chip8 should be able to run on most systems that are supported by Go.
+
+Chip8 was mostly written in Summer 2014 as a hobby, but its source code is
+clean enough to understand.
+
+After it is built, it can be run via
+	chip8 -path="path/to/chip8/rom".
+
+Debug mode can be turned on via the -debug flag.
+
+As a final note, CHIP-8 uses a hex keyboard, mapped directly to keys 0-9 and A-F.
+This can be changed in gfx/Screen.go.
+
+Happy emulating!
