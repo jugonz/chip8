@@ -173,7 +173,7 @@ func (c8 *Chip8) SkipInstrKeyPressed() {
 
 func (c8 *Chip8) SkipInstrKeyNotPressed() {
 	if c8.Debug {
-		fmt.Println("Executing SkipInstrKeyNotPressed()")
+		fmt.Printf("Executing SkipInstrKeyNotPressed() - xreg is %v (xreg value %v) yreg %v value %v literal %v\n", c8.Opcode.Xreg, c8.Registers[c8.Opcode.Xreg], c8.Opcode.Yreg, c8.Opcode.Value, c8.Opcode.Literal)
 	}
 	if !c8.Controller.KeyPressed(c8.Registers[c8.Opcode.Xreg]) {
 		c8.UpdatePC = 4
@@ -293,7 +293,7 @@ func (c8 *Chip8) ShiftLeft() {
 		fmt.Println("Executing ShiftLeft()")
 	}
 	// Set VF to most significant bit of Xreg before shifting.
-	c8.Registers[0xF] = (c8.Registers[c8.Opcode.Xreg] >> 15) & 0x1
+	c8.Registers[0xF] = (c8.Registers[c8.Opcode.Xreg] >> 7) & 0x1
 
 	c8.Registers[c8.Opcode.Xreg] = c8.Registers[c8.Opcode.Xreg] << 1
 }

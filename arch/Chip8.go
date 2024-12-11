@@ -3,7 +3,7 @@ package arch
 import (
 	"fmt"
 	"io"
-	"jugonz/chip8/src/gfx"
+	"jugonz/chip8/gfx"
 	"math/rand"
 	"os"
 	"time"

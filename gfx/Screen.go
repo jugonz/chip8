@@ -3,7 +3,7 @@ package gfx
 import (
 	"fmt"
 	gl "github.com/go-gl/gl/v2.1/gl"
-	glfw "github.com/go-gl/glfw/v3.0/glfw"
+	glfw "github.com/go-gl/glfw/v3.2/glfw"
 )
 
 // Arrays cannot be const in Go, so the keyboard layout is a var.
@@ -46,9 +46,10 @@ func MakeScreen(width int, height int, resWidth int, resHeight int,
 
 func (s *Screen) Init() {
 	// 1. Initialize GLFW and save window context.
-	glfw.SetErrorCallback(s.GFXError)
+	// glfw.SetErrorCallback(s.GFXError)
 
-	if !glfw.Init() { // Init GLFW3...
+	glfwiniterr := glfw.Init() // Init GLFW3...
+	if glfwiniterr != nil {
 		panic("GLFW3 failed to initialize!\n")
 	}
 
@@ -57,7 +58,7 @@ func (s *Screen) Init() {
 		panic(fmt.Errorf("GLFW could not create window! Error: %v\n", err))
 	}
 
-	win.SetInputMode(glfw.StickyKeys, 1) // Turn on sticky keys to avoid callbacks!
+	win.SetInputMode(glfw.StickyKeysMode, 1) // Turn on sticky keys to avoid callbacks!
 	win.MakeContextCurrent()
 
 	s.Window = *win
@@ -83,6 +84,9 @@ func (s *Screen) Draw() {
 	// I have no idea what I'm doing with OpenGL, so
 	// this code is adapted from
 	// https://github.com/nictuku/chip-8/blob/master/system/video.go
+
+	//gl.Viewport(0, 0, s.Width, s.Height)
+	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	gl.MatrixMode(gl.POLYGON)
 
@@ -168,6 +172,6 @@ func (s *Screen) Quit() {
 /**
  * Utility methods used for internal GLFW state.
  */
-func (s *Screen) GFXError(err glfw.ErrorCode, msg string) {
-	panic(fmt.Errorf("GLFW Error: %v: %v\n", err, msg))
-}
+// func (s *Screen) GFXError(err glfw.ErrorCode, msg string) {
+// 	panic(fmt.Errorf("GLFW Error: %v: %v\n", err, msg))
+// }

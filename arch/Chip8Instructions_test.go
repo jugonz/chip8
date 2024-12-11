@@ -1,7 +1,7 @@
 package arch
 
 import (
-	"jugonz/chip8/src/gfx"
+	"jugonz/chip8/gfx"
 	"testing"
 )
 
@@ -19,7 +19,7 @@ func TestSetup(t *testing.T) {
 		}
 	}
 
-	c8.LoadGame("../../c8games/PONG2")
+	c8.LoadGame("../c8games/PONG2")
 	// Check that byte 1 is 22 and last byte is EE.
 	if c8.Memory[0x200] != 0x22 {
 		t.Errorf(
@@ -383,7 +383,7 @@ func TestSaveRestoreRegs(t *testing.T) {
 	c8.DecodeExecute()
 	c8.Opcode = MakeOpcode(0x7206) // Reg 2 has 06.
 	c8.DecodeExecute()
-	c8.Opcode = MakeOpcode(0x76D4) // Reg 3 has D4.
+	c8.Opcode = MakeOpcode(0x76D4) // Reg 6 has D4.
 	c8.DecodeExecute()
 
 	// Check that the registers are correctly filled with data.

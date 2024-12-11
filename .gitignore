@@ -1,4 +1,2 @@
-pkg/
-src/github.com/
-src/code.google.com/
-src/jugonz/chip8/src/main/main
+.DS_Store
+chip8

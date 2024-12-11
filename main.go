@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"jugonz/chip8/src/arch"
+	"jugonz/chip8/arch"
 	"runtime"
 )
 
